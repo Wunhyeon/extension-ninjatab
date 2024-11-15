@@ -1,0 +1,6 @@
+{
+    "manifest_version": 3,
+    "name": "Quick Tab Manager",
+    "version": "1.0",
+    "description": "Manage tabs with custom shortcuts"
+  }
