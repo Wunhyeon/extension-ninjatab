@@ -1,6 +1,28 @@
 {
     "manifest_version": 3,
-    "name": "Quick Tab Manager",
+    "name": "Shortcut Manager",
     "version": "1.0",
-    "description": "Manage tabs with custom shortcuts"
+    "description": "Manage custom shortcuts for web navigation",
+    "permissions": ["storage", "tabs"],
+    "action": {
+      "default_popup": "index.html"
+    },
+    "background": {
+      "service_worker": "background.js"
+    },
+    "content_scripts" : [
+    {
+        "matches" : ["https://*/*"],
+        "js": ["content.js"]
+    }
+   ],
+    "commands": {
+      "_execute_action": {
+        "suggested_key": {
+          "default": "Ctrl+Shift+F",
+          "mac": "MacCtrl+Shift+F"
+        },
+        "description": "Open the extension popup"
+      }
+    }
   }
