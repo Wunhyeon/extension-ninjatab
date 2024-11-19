@@ -1,35 +1,75 @@
-import { useState } from "react";
-import reactLogo from "./assets/react.svg";
-import viteLogo from "/vite.svg";
-import "./App.css";
+import { useState, useEffect } from "react";
+import ShortcutList from "./components/ShortcutList";
+import ShortcutForm from "./components/ShortcutForm";
+
+interface Shortcut {
+  key: string;
+  action: "OPEN_URL" | "OPEN_MULTIPLE_URLS" | "CLOSE_AND_OPEN";
+  url?: string;
+  urls?: string[];
+}
+
+interface Shortcuts {
+  [key: string]: Shortcut;
+}
 
 function App() {
-  const [count, setCount] = useState(0);
+  const [shortcuts, setShortcuts] = useState<Shortcuts>({});
+  const [isAddingShortcut, setIsAddingShortcut] = useState(false);
+
+  useEffect(() => {
+    chrome.storage.sync.get("shortcuts", (data: { shortcuts: Shortcuts }) => {
+      console.log("init - data : ", data);
+
+      setShortcuts(data.shortcuts || {});
+    });
+  }, []);
+
+  useEffect(() => {
+    const handleKeyDown = (event: KeyboardEvent) => {
+      console.log("keydown : ", event);
+
+      const shortcutKey = `${event.ctrlKey ? "Ctrl+" : ""}${
+        event.shiftKey ? "Shift+" : ""
+      }${event.key.toUpperCase()}`;
+      if (shortcuts[shortcutKey]) {
+        event.preventDefault();
+        chrome.runtime.sendMessage({ type: "EXECUTE_SHORTCUT", shortcutKey });
+      }
+    };
+
+    document.addEventListener("keydown", handleKeyDown);
+    return () => {
+      document.removeEventListener("keydown", handleKeyDown);
+    };
+  }, [shortcuts]);
+
+  const handleAddShortcut = (newShortcut: Shortcut) => {
+    const updatedShortcuts = { ...shortcuts, [newShortcut.key]: newShortcut };
+    chrome.storage.sync.set({ shortcuts: updatedShortcuts }, () => {
+      setShortcuts(updatedShortcuts);
+      setIsAddingShortcut(false);
+    });
+  };
 
   return (
-    <>
-      <div>
-        <a href="https://vite.dev" target="_blank">
-          <img src={viteLogo} className="logo" alt="Vite logo" />
-        </a>
-        <a href="https://react.dev" target="_blank">
-          <img src={reactLogo} className="logo react" alt="React logo" />
-        </a>
-      </div>
-      <h1>Vite + React</h1>
-      <div className="card">
-        <button onClick={() => setCount((count) => count + 1)}>
-          count is {count}
+    <div className="p-4 w-72">
+      <h1 className="text-2xl font-bold mb-4">Shortcut Manager</h1>
+      <ShortcutList shortcuts={shortcuts} />
+      {isAddingShortcut ? (
+        <ShortcutForm
+          onSave={handleAddShortcut}
+          onCancel={() => setIsAddingShortcut(false)}
+        />
+      ) : (
+        <button
+          className="mt-4 bg-blue-500 text-white px-4 py-2 rounded"
+          onClick={() => setIsAddingShortcut(true)}
+        >
+          Add Shortcut
         </button>
-        <p>
-          Edit <code>src/App.tsx</code> and save to test HMR
-        </p>
-      </div>
-      <p className="read-the-docs">
-        Click on the Vite and React logos to learn more
-      </p>
-      <h1 className="text-6xl text-red-600">HI</h1>
-    </>
+      )}
+    </div>
   );
 }
 
