@@ -1,13 +1,26 @@
+/*
+const dir = {
+  closeChrone : false,
+  closeThisTab : false,
+  muteThisTab : false,
+  moveThisTab : 'https://url.com',
+  openTab : 'https://1.com','https://2.com'
+}
+*/
+
 import React, { useState } from "react";
 import { ShortcutInput } from "./ShortcutInput";
+
+import { Shortcut } from "../lib/interface";
 // import { ShortcutInput } from "./ShortcutInput";
 
-interface Shortcut {
-  key: string;
-  action: "OPEN_URL" | "OPEN_MULTIPLE_URLS" | "CLOSE_AND_OPEN";
-  url?: string;
-  urls?: string[];
-}
+// const dir = {
+//   closeChrone : false,
+//   closeThisTab : false,
+//   muteThisTab : false,
+//   moveThisTab : 'https://url.com',
+//   openTab : 'https://1.com','https://2.com'
+// }
 
 interface ShortcutFormProps {
   onSave: (shortcut: Shortcut) => void;
@@ -15,25 +28,20 @@ interface ShortcutFormProps {
 }
 
 function ShortcutForm({ onSave, onCancel }: ShortcutFormProps) {
-  const [key, _setKey] = useState("");
-  const [action, setAction] = useState<Shortcut["action"]>("OPEN_URL");
-  const [url, setUrl] = useState("");
-  const [urls, setUrls] = useState("");
-
   const [isShortcutInputModalOpen, setIsShortcutInputModalOpen] =
     useState(false);
   const [currentKeys, setCurrentKeys] = useState<string[]>([]);
+  // const [isCloseThisTab, setIsCloseThisTab] = useState<boolean>(true);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    const shortcutKey = currentKeys.join("+");
     onSave({
-      key,
-      action,
-      url: action === "OPEN_MULTIPLE_URLS" ? undefined : url,
-      urls:
-        action === "OPEN_MULTIPLE_URLS"
-          ? urls.split(",").map((u) => u.trim())
-          : undefined,
+      key: shortcutKey,
+      closeThisTab: false,
+      muteThisTab: false,
+      moveThisTab: "",
+      openTabs: [],
     });
   };
 
@@ -77,18 +85,9 @@ function ShortcutForm({ onSave, onCancel }: ShortcutFormProps) {
         {/* Modal end ------ */}
       </div>
       <div>
-        <label className="block">Action:</label>
-        <select
-          value={action}
-          onChange={(e) => setAction(e.target.value as Shortcut["action"])}
-          className="border p-2 w-full"
-        >
-          <option value="OPEN_URL">Open URL</option>
-          <option value="OPEN_MULTIPLE_URLS">Open Multiple URLs</option>
-          <option value="CLOSE_AND_OPEN">Close Current and Open URL(s)</option>
-        </select>
+        <label className="block">Close Current tab</label>
       </div>
-      {action !== "OPEN_MULTIPLE_URLS" ? (
+      {/* {action !== "OPEN_MULTIPLE_URLS" ? (
         <div>
           <label className="block">URL:</label>
           <input
@@ -109,7 +108,7 @@ function ShortcutForm({ onSave, onCancel }: ShortcutFormProps) {
             required
           />
         </div>
-      )}
+      )} */}
 
       <div className="flex space-x-2">
         <button
