@@ -1,8 +1,8 @@
 export interface Shortcut {
   key: string;
-  closeThisTab: boolean;
-  muteThisTab: boolean;
-  moveThisTab: string;
+  closeCurrentTab: boolean;
+  muteCurrentTab: boolean;
+  moveCurrentTab: string;
   openTabs: string[];
 }
 
