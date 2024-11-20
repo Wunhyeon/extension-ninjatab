@@ -1,5 +1,6 @@
 // ShortcutInput.tsx
 import { useEffect, useState } from "react";
+import { codeToKey } from "../lib/codeToKey";
 
 interface ShortcutInputProps {
   closeModal: () => void;
@@ -23,32 +24,35 @@ export const ShortcutInput = ({
       setRecording(true);
     }
 
-    const key = e.key.toLowerCase();
+    // code를 사용하여 실제 키 값 얻기
+    const keyCode = e.code;
 
-    // Special keys mapping
-    const specialKeys: Record<string, string> = {
-      " ": "space",
-      control: "ctrl",
-      meta: "cmd",
-      arrowup: "↑",
-      arrowdown: "↓",
-      arrowleft: "←",
-      arrowright: "→",
-    };
-
-    // Add modifier keys first
     const newKeys = new Set<string>();
+
+    // 수식키 추가
     if (e.ctrlKey) newKeys.add("ctrl");
     if (e.metaKey) newKeys.add("cmd");
     if (e.altKey) newKeys.add("alt");
     if (e.shiftKey) newKeys.add("shift");
 
-    // Add the actual key if it's not a modifier
-    if (!["control", "shift", "alt", "meta"].includes(key)) {
-      newKeys.add(specialKeys[key] || key);
+    // 수식키가 아닌 경우에만 키 추가
+    if (
+      ![
+        "ControlLeft",
+        "ControlRight",
+        "ShiftLeft",
+        "ShiftRight",
+        "AltLeft",
+        "AltRight",
+        "MetaLeft",
+        "MetaRight",
+      ].includes(keyCode)
+    ) {
+      // 매핑된 키 값이 있으면 그 값을 사용하고, 없으면 원래 코드의 마지막 부분을 사용
+      const keyValue =
+        codeToKey[keyCode] || keyCode.replace(/^(Key|Digit)/, "").toLowerCase();
+      newKeys.add(keyValue);
     }
-
-    console.log("e : ", e);
 
     setCurrentKeys(Array.from(newKeys));
   };
