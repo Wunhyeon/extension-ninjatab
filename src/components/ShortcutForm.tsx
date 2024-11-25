@@ -57,7 +57,7 @@ function ShortcutForm({ onSave, onCancel }: ShortcutFormProps) {
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
       <div>
-        <label className="block">Shortcut Key:</label>
+        <label className="block font-medium text-base">Shortcut Key:</label>
         <input
           type="text"
           value={

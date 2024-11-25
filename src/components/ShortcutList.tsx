@@ -16,7 +16,10 @@ function ShortcutList({ shortcuts }: ShortcutListProps) {
   return (
     <ul className="space-y-2">
       {Object.entries(shortcuts).map(([key, shortcut]) => (
-        <li key={key} className="border p-2 rounded flex items-center gap-2">
+        <li
+          key={key}
+          className="border p-2 rounded flex flex-wrap items-center gap-2"
+        >
           <strong className="inline-flex items-center rounded-md bg-blue-50 px-2 py-1 text-xs font-medium text-blue-700 ring-1 ring-inset ring-blue-700/10">
             {key}
           </strong>

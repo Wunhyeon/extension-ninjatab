@@ -214,14 +214,14 @@ let shortcuts: Shortcuts;
 chrome.runtime.onStartup.addListener(() => {
   chrome.storage.sync.get(["shortcuts"], (result) => {
     // result.userSettings에 저장된 데이터 사용
-    shortcuts = result;
+    shortcuts = result.shortcuts;
   });
 });
 
 chrome.runtime.onInstalled.addListener(() => {
   console.log("onINstalled");
 
-  chrome.storage.sync.set({ shortcuts: {} as Shortcuts });
+  // chrome.storage.sync.set({ shortcuts: {} as Shortcuts });
 });
 
 chrome.runtime.onMessage.addListener(
@@ -243,8 +243,12 @@ chrome.runtime.onMessage.addListener(
     // EXECUTE FROM CONTENT
     if (request.type === "KEY_DOWN") {
       console.log("KEY DOWN FROM CONTENT!! - request : ", request);
+      console.log("shortcuts : ", shortcuts);
 
       const shortcutKey = getShortcutKeyCombo(request.key).join("+");
+      console.log("shortcutKey : ", shortcutKey);
+      console.log("shortcuts[shortcutKey] : ", shortcuts[shortcutKey]);
+
       if (shortcuts && shortcuts[shortcutKey]) {
         // event.preventDefault();
         console.log(
