@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { ShortcutInput } from "../components/ShortcutInput";
 
 // import { Shortcut } from "../lib/interface";
@@ -6,6 +6,7 @@ import { RadioGroup, RadioGroupItem } from "../components/ui/radio-group";
 import { Label } from "../components/ui/label";
 import DynamicInputList from "../components/DynamicInputList";
 import { useNavigate, useParams } from "react-router-dom";
+import { Shortcuts } from "@/lib/interface";
 
 export const Edit = () => {
   const { key } = useParams();
@@ -20,10 +21,44 @@ export const Edit = () => {
   const [currentKeys, setCurrentKeys] = useState<string[]>(
     key && key.length > 0 ? key.split("+") : []
   );
-  const [isCloseThisTab, setIsCloseThisTab] = useState<string>("true");
-  const [isMuteThisTab, setIsMuteThisTab] = useState<string>("true");
+  // const [isCloseCurrentTab, setIsCloseCurrentTab] = useState<string>("true");
+  const [isCloseCurrentTab, setIsCloseCurrentTab] = useState<string>("true");
+  const [isMuteCurrentTab, setIsMuteCurrentTab] = useState<string>("true");
   const [moveCurrentTabUrl, setMoveCurrentTabUrl] = useState<string>("");
   const [openTabUrls, setOpenTabUrls] = useState<string[]>([]);
+
+  useEffect(() => {
+    chrome.storage.sync.get("shortcuts", (data: { shortcuts: Shortcuts }) => {
+      // console.log("init - data : ", data);
+      if (!key || key === "") {
+        // 이게 작동되지는 않는데, 그냥 넣어놈.
+        console.log(
+          "something long. 수정페이지라서 반드시 key를 params로 받아와야 함."
+        );
+        return (
+          <div>
+            <h1>Shortcut Not found</h1>
+          </div>
+        );
+      }
+      console.log("init - data.shortcuts : ", data.shortcuts);
+      console.log(data.shortcuts[key]);
+      // setIsCloseCurrentTab(value => {data.shortcuts[key].})
+      const shortcutInfo = data.shortcuts[key];
+      if (!shortcutInfo.closeCurrentTab) {
+        setIsCloseCurrentTab("false");
+      }
+      if (!shortcutInfo.muteCurrentTab) {
+        setIsMuteCurrentTab("false");
+      }
+      if (shortcutInfo.moveCurrentTab) {
+        setMoveCurrentTabUrl(shortcutInfo.moveCurrentTab);
+      }
+      if (shortcutInfo.openTabs.length > 0) {
+        setOpenTabUrls(shortcutInfo.openTabs);
+      }
+    });
+  }, []);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -47,7 +82,7 @@ export const Edit = () => {
     <div className="p-4 w-72">
       <form onSubmit={handleSubmit} className="space-y-4">
         <div>
-          <label className="block">Shortcut Key:</label>
+          <label className="block font-medium text-base">Shortcut Key:</label>
           <input
             type="text"
             value={
@@ -83,8 +118,8 @@ export const Edit = () => {
           <RadioGroup
             defaultValue="true"
             className="flex"
-            value={isCloseThisTab}
-            onValueChange={setIsCloseThisTab}
+            value={isCloseCurrentTab}
+            onValueChange={setIsCloseCurrentTab}
           >
             <div className="flex items-center space-x-2">
               <RadioGroupItem value="true" id="r1" />
@@ -102,7 +137,7 @@ export const Edit = () => {
         </div>
         {/* Close Current Tab ----------------- */}
         {/* Move Current Tab */}
-        {isCloseThisTab === "true" ? (
+        {isCloseCurrentTab === "true" ? (
           <></>
         ) : (
           <div>
@@ -131,8 +166,8 @@ export const Edit = () => {
           <RadioGroup
             defaultValue="true"
             className="flex"
-            value={isMuteThisTab}
-            onValueChange={setIsMuteThisTab}
+            value={isMuteCurrentTab}
+            onValueChange={setIsMuteCurrentTab}
           >
             <div className="flex items-center space-x-2">
               <RadioGroupItem value="true" id="r1" />
