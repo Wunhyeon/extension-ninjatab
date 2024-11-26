@@ -1,6 +1,7 @@
 import { clsx, type ClassValue } from "clsx";
 import { twMerge } from "tailwind-merge";
 import { codeToKey } from "./codeToKey";
+import { Shortcuts } from "./interface";
 
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
@@ -45,4 +46,40 @@ export const getShortcutKeyCombo = (e: KeyboardEvent) => {
 
   // setCurrentKeys(Array.from(newKeys));
   return Array.from(newKeys);
+};
+
+// export const validateShortcut = (shortcuts: Shortcuts, shortcut: string) => {
+//   return (
+//     validateShortcutEmpty(shortcut) &&
+//     shortcutDuplicateCheck(shortcuts, shortcut)
+//   );
+// };
+
+// 단축키 입력했나 안했나(비었나, 안비었나). 입력했으면 true, 입력 안했으면 false
+export const validateShortcutEmpty = (shortcut: string) => {
+  if (!shortcut || shortcut === "") {
+    return false;
+  }
+  return true;
+};
+
+// 중복확인 : 중복된게 있으면 return false. 없으면 return true
+export const shortcutDuplicateCheck = (
+  shortcuts: Shortcuts,
+  shortcut: string
+) => {
+  if (shortcuts[shortcut]) {
+    return false;
+  }
+  return true;
+};
+
+// open new tabs 빈칸확인. 빈게 있으면 return false, 없으면 return true;
+export const validateOpenNewTabsEmpty = (opentabUrls: string[]) => {
+  for (let i = 0; i < opentabUrls.length; i++) {
+    if (!opentabUrls[i] || opentabUrls[i] === "") {
+      return false;
+    }
+  }
+  return true;
 };

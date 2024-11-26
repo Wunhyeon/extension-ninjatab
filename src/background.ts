@@ -202,7 +202,7 @@ const executeShortcut = async (func: Shortcut) => {
     /*await*/ chrome.tabs.update(currentTabId, { muted: true });
   }
 
-  if (func.openTabs.length > 0) {
+  if (func.openTabs && func.openTabs.length > 0) {
     for (let i = 0; i < func.openTabs.length; i++) {
       chrome.tabs.create({ url: func.openTabs[i] });
     }
@@ -225,14 +225,14 @@ chrome.runtime.onInstalled.addListener(() => {
 });
 
 chrome.runtime.onMessage.addListener(
-  async (request: RequestType, _sender, _sendResponse) => {
+  async (request: RequestType, _sender, sendResponse) => {
     // SAVE
     if (request.type === "SAVE_SHORTCUT") {
-      chrome.storage.sync.set({
+      await chrome.storage.sync.set({
         shortcuts: request.shortcuts ? request.shortcuts : {},
       });
-      shortcuts = request.shortcuts ? request.shortcuts : {};
-      console.log("saveShortcut. new shortcuts : ", shortcuts);
+
+      sendResponse({ success: true });
     }
 
     // EXECUTE FROM EXTENSION

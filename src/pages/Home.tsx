@@ -2,7 +2,8 @@ import { useState, useEffect } from "react";
 import ShortcutList from "../components/ShortcutList";
 import ShortcutForm from "../components/ShortcutForm";
 import { Shortcut, Shortcuts } from "../lib/interface";
-import { getShortcutKeyCombo } from "../lib/utils";
+import { getShortcutKeyCombo, shortcutDuplicateCheck } from "../lib/utils";
+import { EXIST_SHORTCUT_CONFIRM, SAVE_SHORTCUT } from "@/lib/constant";
 
 function Home() {
   const [shortcuts, setShortcuts] = useState<Shortcuts>({});
@@ -57,8 +58,19 @@ function Home() {
     //   setShortcuts(updatedShortcuts);
     //   setIsAddingShortcut(false);
     // });
+
+    // validateShortcutEmpty(newShortcut.key)
+    const isDuplicated = !shortcutDuplicateCheck(shortcuts, newShortcut.key);
+    let duplicatedButContinue = true;
+    if (isDuplicated) {
+      duplicatedButContinue = confirm(EXIST_SHORTCUT_CONFIRM);
+    }
+    if (!duplicatedButContinue) {
+      return;
+    }
+
     chrome.runtime.sendMessage({
-      type: "SAVE_SHORTCUT",
+      type: SAVE_SHORTCUT,
       shortcuts: updatedShortcuts,
     });
     setShortcuts(updatedShortcuts);
@@ -76,7 +88,7 @@ function Home() {
         />
       ) : (
         <div>
-          <ShortcutList shortcuts={shortcuts} />
+          <ShortcutList shortcuts={shortcuts} setShortcuts={setShortcuts} />
           <button
             className="mt-4 bg-blue-500 text-white px-4 py-2 rounded"
             onClick={() => setIsAddingShortcut(true)}

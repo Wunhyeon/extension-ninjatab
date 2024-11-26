@@ -15,6 +15,8 @@ import { Shortcut } from "../lib/interface";
 import { RadioGroup, RadioGroupItem } from "./ui/radio-group";
 import { Label } from "./ui/label";
 import DynamicInputList from "./DynamicInputList";
+import { validateOpenNewTabsEmpty, validateShortcutEmpty } from "@/lib/utils";
+import { URL_MUST_START_WITH } from "@/lib/constant";
 interface ShortcutFormProps {
   onSave: (shortcut: Shortcut) => void;
   onCancel: () => void;
@@ -28,14 +30,37 @@ function ShortcutForm({ onSave, onCancel }: ShortcutFormProps) {
   const [isMuteThisTab, setIsMuteThisTab] = useState<string>("true");
   const [moveCurrentTabUrl, setMoveCurrentTabUrl] = useState<string>("");
   const [openTabUrls, setOpenTabUrls] = useState<string[]>([]);
+  // validate
+  const [isShortcutFilled, setIsShortcutFilled] = useState<boolean>(true);
+  const [isOpentabUrlFilled, setIsOpentabUrlFilled] = useState<boolean>(true);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     const shortcutKey = currentKeys.join("+");
+
+    if (!validateShortcutEmpty(shortcutKey)) {
+      setIsShortcutFilled(false);
+      return;
+    } else {
+      setIsShortcutFilled(true);
+    }
+    console.log(
+      "validateOpenNewTabsEmpty(openTabUrls) : ",
+      validateOpenNewTabsEmpty(openTabUrls)
+    );
+
+    if (!validateOpenNewTabsEmpty(openTabUrls)) {
+      setIsOpentabUrlFilled(false);
+      return;
+    } else {
+      setIsOpentabUrlFilled(true);
+    }
+
     // 현재 탭 닫기가 트루이면 현재탭을 다른 url로 옮기는거 없게
     if (isCloseThisTab === "true") {
       setMoveCurrentTabUrl("");
     }
+
     onSave({
       key: shortcutKey,
       closeCurrentTab: isCloseThisTab === "true",
@@ -83,6 +108,10 @@ function ShortcutForm({ onSave, onCancel }: ShortcutFormProps) {
           />
         )}
         {/* Modal end ------ */}
+        {/* validate filled */}
+        {!isShortcutFilled && (
+          <p className="text-red-500">Please Fill the Shortcut</p>
+        )}
       </div>
       {/* Close Current Tab ----------- */}
       <div>
@@ -127,6 +156,7 @@ function ShortcutForm({ onSave, onCancel }: ShortcutFormProps) {
               setMoveCurrentTabUrl(e.target.value);
             }}
             className="border p-2 w-full"
+            placeholder={URL_MUST_START_WITH}
           />
         </div>
       )}
@@ -158,6 +188,13 @@ function ShortcutForm({ onSave, onCancel }: ShortcutFormProps) {
       {/* Open New Tabs ------------------ */}
       <div>
         <label className="block font-medium text-base">Open New Tabs</label>
+        <p>{URL_MUST_START_WITH}</p>
+        {/* validate */}
+        {!isOpentabUrlFilled && (
+          <p className="text-red-500">
+            Please do not leave the URL input field empty.
+          </p>
+        )}
         <DynamicInputList
           stringArr={openTabUrls}
           setStringArr={setOpenTabUrls}
