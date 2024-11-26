@@ -9,7 +9,11 @@ import { FolderPlusIcon } from "@/lib/svgToTs/FolderPlusIcon";
 import { useNavigate } from "react-router-dom";
 import { CogwheelIcon } from "@/lib/svgToTs/Cogwheellcon";
 import { TrashIcon } from "@/lib/svgToTs/TrashIcon";
-import { IS_DELETE_SHORTCUT_CONFIRM, SAVE_SHORTCUT } from "@/lib/constant";
+import {
+  EXECUTE_SHORTCUT_BY_CLICK,
+  IS_DELETE_SHORTCUT_CONFIRM,
+  SAVE_SHORTCUT,
+} from "@/lib/constant";
 
 function ShortcutList({
   shortcuts,
@@ -46,12 +50,22 @@ function ShortcutList({
       });
   };
 
+  const executeShortcutByClick = (shortcut: Shortcut) => {
+    chrome.runtime.sendMessage({
+      type: EXECUTE_SHORTCUT_BY_CLICK,
+      shortcut: shortcut,
+    });
+  };
+
   return (
     <ul className="space-y-2">
       {Object.entries(shortcuts).map(([key, shortcut]) => (
         <li
           key={key}
-          className="border p-2 rounded flex flex-wrap items-center gap-2"
+          className="border p-2 rounded flex flex-wrap items-center gap-2 cursor-pointer"
+          onClick={() => {
+            executeShortcutByClick(shortcut);
+          }}
         >
           <strong className="inline-flex items-center rounded-md bg-blue-50 px-2 py-1 text-xs font-medium text-blue-700 ring-1 ring-inset ring-blue-700/10">
             {key}
@@ -98,13 +112,17 @@ function ShortcutList({
           <div className="ml-auto flex gap-2">
             <button
               className="bg-gray-100 text-gray-700 border p-1   rounded-full hover:bg-gray-200"
-              onClick={() => navigate(`/edit/${key}`)}
+              onClick={(e) => {
+                e.stopPropagation();
+                navigate(`/edit/${key}`);
+              }}
             >
               <CogwheelIcon />
             </button>
             <button
               className="bg-red-100 text-red-700 border p-1  rounded-full hover:bg-red-200"
-              onClick={() => {
+              onClick={(e) => {
+                e.stopPropagation();
                 deleteShortcut(shortcut.key);
               }}
             >

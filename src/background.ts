@@ -22,6 +22,7 @@ type RequestType = {
   type: string;
   key: KeyType;
   shortcuts?: Shortcuts;
+  shortcut?: Shortcut;
 };
 
 const codeToKey: Record<string, string> = {
@@ -231,7 +232,7 @@ chrome.runtime.onMessage.addListener(
       await chrome.storage.sync.set({
         shortcuts: request.shortcuts ? request.shortcuts : {},
       });
-
+      shortcuts = request.shortcuts ? request.shortcuts : {}; // 저장하고, 전역변수로 저장된 shortcuts 업데이트
       sendResponse({ success: true });
     }
 
@@ -257,6 +258,16 @@ chrome.runtime.onMessage.addListener(
         );
 
         executeShortcut(shortcuts[shortcutKey]);
+      }
+    }
+
+    // EXECUTE BY CLICK
+    if (request.type === "EXECUTE_SHORTCUT_BY_CLICK") {
+      // const shortcuts = request
+      // console.log("shortcuts : ", shortcuts);
+      console.log("request : ", request.shortcut);
+      if (request.shortcut) {
+        executeShortcut(request.shortcut);
       }
     }
   }
