@@ -7,6 +7,16 @@ import { Label } from "../components/ui/label";
 import DynamicInputList from "../components/DynamicInputList";
 import { useNavigate, useParams } from "react-router-dom";
 import { Shortcuts } from "@/lib/interface";
+import {
+  shortcutDuplicateCheck,
+  validateOpenNewTabsEmpty,
+  validateShortcutEmpty,
+} from "@/lib/utils";
+import {
+  EXIST_SHORTCUT_CONFIRM,
+  SAVE_SHORTCUT,
+  URL_MUST_START_WITH,
+} from "@/lib/constant";
 
 export const Edit = () => {
   const { key } = useParams();
@@ -15,7 +25,7 @@ export const Edit = () => {
   const goToHome = () => {
     navigate("/");
   };
-
+  const [shortcuts, setShortcuts] = useState<Shortcuts>({});
   const [isShortcutInputModalOpen, setIsShortcutInputModalOpen] =
     useState(false);
   const [currentKeys, setCurrentKeys] = useState<string[]>(
@@ -26,10 +36,84 @@ export const Edit = () => {
   const [isMuteCurrentTab, setIsMuteCurrentTab] = useState<string>("true");
   const [moveCurrentTabUrl, setMoveCurrentTabUrl] = useState<string>("");
   const [openTabUrls, setOpenTabUrls] = useState<string[]>([]);
+  //validate
+  const [isShortcutFilled, setIsShortcutFilled] = useState<boolean>(true);
+  const [isOpentabUrlFilled, setIsOpentabUrlFilled] = useState<boolean>(true);
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    e.preventDefault();
+    const shortcutKey = currentKeys.join("+");
+    // 현재 탭 닫기가 트루이면 현재탭을 다른 url로 옮기는거 없게
+    if (isCloseCurrentTab === "true") {
+      setMoveCurrentTabUrl("");
+    }
+    if (!validateShortcutEmpty(shortcutKey)) {
+      setIsShortcutFilled(false);
+      return;
+    } else {
+      setIsShortcutFilled(true);
+    }
+
+    if (!validateOpenNewTabsEmpty(openTabUrls)) {
+      setIsOpentabUrlFilled(false);
+      return;
+    } else {
+      setIsOpentabUrlFilled(true);
+    }
+
+    const isDuplicated = !shortcutDuplicateCheck(shortcuts, shortcutKey);
+    let duplicatedButContinue = true;
+    if (isDuplicated) {
+      duplicatedButContinue = confirm(EXIST_SHORTCUT_CONFIRM);
+    }
+    if (!duplicatedButContinue) {
+      return;
+    }
+    const updatedShortcuts = {
+      ...shortcuts,
+      [shortcutKey]: {
+        key: shortcutKey,
+        closeCurrentTab: isCloseCurrentTab === "true",
+        muteCurrentTab: isMuteCurrentTab === "true",
+        moveCurrentTab: isCloseCurrentTab === "true" ? "" : moveCurrentTabUrl,
+        openTabs: openTabUrls,
+      },
+    };
+
+    let finalShortcuts = { ...updatedShortcuts };
+    if (key !== shortcutKey) {
+      const { [key!]: removedKey, ...rest } = finalShortcuts;
+      finalShortcuts = rest;
+    }
+
+    chrome.runtime
+      .sendMessage({
+        type: SAVE_SHORTCUT,
+        shortcuts: finalShortcuts,
+      })
+      .then(() => {
+        navigate("/");
+      })
+      .catch((error) => {
+        console.log("error : ", error);
+        alert("Something wrong. please try again");
+      });
+  };
+
+  // ShortcutInput Modal Open
+  const handleShortcutInputOpen = () => {
+    setIsShortcutInputModalOpen(true);
+  };
+
+  const handleShortcutInputClose = () => {
+    setIsShortcutInputModalOpen(false);
+  };
 
   useEffect(() => {
     chrome.storage.sync.get("shortcuts", (data: { shortcuts: Shortcuts }) => {
       // console.log("init - data : ", data);
+      setShortcuts(data.shortcuts || {});
       if (!key || key === "") {
         // 이게 작동되지는 않는데, 그냥 넣어놈.
         console.log(
@@ -54,29 +138,23 @@ export const Edit = () => {
       if (shortcutInfo.moveCurrentTab) {
         setMoveCurrentTabUrl(shortcutInfo.moveCurrentTab);
       }
-      if (shortcutInfo.openTabs.length > 0) {
+      if (shortcutInfo.openTabs && shortcutInfo.openTabs.length > 0) {
         setOpenTabUrls(shortcutInfo.openTabs);
       }
     });
   }, []);
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    // const shortcutKey = currentKeys.join("+");
-    // // 현재 탭 닫기가 트루이면 현재탭을 다른 url로 옮기는거 없게
-    // if (isCloseThisTab === "true") {
-    //   setMoveCurrentTabUrl("");
-    // }
-  };
-
-  // ShortcutInput Modal Open
-  const handleShortcutInputOpen = () => {
-    setIsShortcutInputModalOpen(true);
-  };
-
-  const handleShortcutInputClose = () => {
-    setIsShortcutInputModalOpen(false);
-  };
+  if (!key || key === "") {
+    // 이게 작동되지는 않는데, 그냥 넣어놈.
+    console.log(
+      "something long. 수정페이지라서 반드시 key를 params로 받아와야 함."
+    );
+    return (
+      <div>
+        <h1>Shortcut Not found</h1>
+      </div>
+    );
+  }
 
   return (
     <div className="p-4 w-72">
@@ -108,6 +186,10 @@ export const Edit = () => {
             />
           )}
           {/* Modal end ------ */}
+          {/* validate filled */}
+          {!isShortcutFilled && (
+            <p className="text-red-500">Please Fill the Shortcut</p>
+          )}
         </div>
         {/* Close Current Tab ----------- */}
         <div>
@@ -187,6 +269,13 @@ export const Edit = () => {
         {/* Open New Tabs ------------------ */}
         <div>
           <label className="block font-medium text-base">Open New Tabs</label>
+          <p>{URL_MUST_START_WITH}</p>
+          {/* validate */}
+          {!isOpentabUrlFilled && (
+            <p className="text-red-500">
+              Please do not leave the URL input field empty.
+            </p>
+          )}
           <DynamicInputList
             stringArr={openTabUrls}
             setStringArr={setOpenTabUrls}
@@ -196,6 +285,10 @@ export const Edit = () => {
           <button
             type="submit"
             className="bg-green-500 text-white px-4 py-2 rounded"
+            onClick={() => {
+              // shortcuts
+              console.log("shortcuts : ", shortcuts);
+            }}
           >
             Save
           </button>

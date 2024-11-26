@@ -1,7 +1,7 @@
 // import React from "react";
 
 import { MuteIcon } from "@/lib/svgToTs/MuteIcon";
-import { ShortcutListProps } from "../lib/interface";
+import { Shortcut, Shortcuts } from "../lib/interface";
 import { IconTooltip } from "./ui/IconTooltip";
 import { XCircleIcon } from "@/lib/svgToTs/XCircleIcon";
 import { ArrowRightCircleIcon } from "@/lib/svgToTs/ArrowRightCircleIcon";
@@ -9,9 +9,42 @@ import { FolderPlusIcon } from "@/lib/svgToTs/FolderPlusIcon";
 import { useNavigate } from "react-router-dom";
 import { CogwheelIcon } from "@/lib/svgToTs/Cogwheellcon";
 import { TrashIcon } from "@/lib/svgToTs/TrashIcon";
+import { IS_DELETE_SHORTCUT_CONFIRM, SAVE_SHORTCUT } from "@/lib/constant";
 
-function ShortcutList({ shortcuts }: ShortcutListProps) {
+function ShortcutList({
+  shortcuts,
+  setShortcuts,
+}: {
+  shortcuts: { [key: string]: Shortcut };
+  setShortcuts: (value: React.SetStateAction<Shortcuts>) => void;
+}) {
   const navigate = useNavigate();
+
+  const deleteShortcut = (key: string) => {
+    const isDelete = confirm(IS_DELETE_SHORTCUT_CONFIRM);
+
+    if (!isDelete) {
+      return;
+    }
+
+    let finalShortcuts = { ...shortcuts };
+
+    const { [key]: removedKey, ...rest } = finalShortcuts;
+    finalShortcuts = rest;
+
+    chrome.runtime
+      .sendMessage({
+        type: SAVE_SHORTCUT,
+        shortcuts: finalShortcuts,
+      })
+      .then(() => {
+        setShortcuts(finalShortcuts);
+      })
+      .catch((error) => {
+        console.log("error : ", error);
+        alert("Something wrong. please try again");
+      });
+  };
 
   return (
     <ul className="space-y-2">
@@ -52,7 +85,7 @@ function ShortcutList({ shortcuts }: ShortcutListProps) {
               <></>
             )}
             {/* Open Tabs */}
-            {shortcut.openTabs.length > 0 ? (
+            {shortcut.openTabs && shortcut.openTabs.length > 0 ? (
               <IconTooltip
                 icon={<FolderPlusIcon />}
                 tooltipText={`${shortcut.openTabs.join(", ")}`}
@@ -69,7 +102,12 @@ function ShortcutList({ shortcuts }: ShortcutListProps) {
             >
               <CogwheelIcon />
             </button>
-            <button className="bg-red-100 text-red-700 border p-1  rounded-full hover:bg-red-200">
+            <button
+              className="bg-red-100 text-red-700 border p-1  rounded-full hover:bg-red-200"
+              onClick={() => {
+                deleteShortcut(shortcut.key);
+              }}
+            >
               <TrashIcon />
             </button>
           </div>
