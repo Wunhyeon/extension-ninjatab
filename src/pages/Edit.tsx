@@ -42,7 +42,6 @@ export const Edit = () => {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    e.preventDefault();
     const shortcutKey = currentKeys.join("+");
     // 현재 탭 닫기가 트루이면 현재탭을 다른 url로 옮기는거 없게
     if (isCloseCurrentTab === "true") {
@@ -64,7 +63,7 @@ export const Edit = () => {
 
     const isDuplicated = !shortcutDuplicateCheck(shortcuts, shortcutKey);
     let duplicatedButContinue = true;
-    if (isDuplicated) {
+    if (key !== shortcutKey && isDuplicated) {
       duplicatedButContinue = confirm(EXIST_SHORTCUT_CONFIRM);
     }
     if (!duplicatedButContinue) {

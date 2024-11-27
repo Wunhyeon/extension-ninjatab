@@ -62,7 +62,7 @@ function ShortcutList({
       {Object.entries(shortcuts).map(([key, shortcut]) => (
         <li
           key={key}
-          className="border p-2 rounded flex flex-wrap items-center gap-2 cursor-pointer"
+          className="border p-2 rounded flex flex-wrap items-center gap-2 cursor-pointer hover:bg-zinc-100"
           onClick={() => {
             executeShortcutByClick(shortcut);
           }}

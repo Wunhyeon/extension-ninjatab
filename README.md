@@ -1,4 +1,4 @@
-# CyberLoafing Tab - Chrome Extension
+# Ninja Tab - Chrome Extension
 
 ## Tag Color
 

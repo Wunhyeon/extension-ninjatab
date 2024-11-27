@@ -38,7 +38,10 @@ function Home() {
         event.preventDefault();
         console.log("shortcut 발동!");
 
-        chrome.runtime.sendMessage({ type: "EXECUTE_SHORTCUT", shortcutKey });
+        chrome.runtime.sendMessage({
+          type: "EXECUTE_SHORTCUT",
+          shortcut: shortcuts[shortcutKey],
+        });
       } else {
         return;
       }

@@ -1,6 +1,6 @@
 {
     "manifest_version": 3,
-    "name": "Shortcut Manager",
+    "name": "Ninja Tab",
     "version": "1.0",
     "description": "Manage custom shortcuts for web navigation",
     "permissions": ["storage", "tabs"],
@@ -16,13 +16,10 @@
         "js": ["content.js"]
     }
    ],
-    "commands": {
-      "_execute_action": {
-        "suggested_key": {
-          "default": "Ctrl+Shift+F",
-          "mac": "MacCtrl+Shift+F"
-        },
-        "description": "Open the extension popup"
-      }
+    "icons": {
+      "16": "images/icon-16.png",
+      "32": "images/icon-32.png",
+      "48": "images/icon-48.png",
+      "128": "images/icon-128.png"
     }
   }
