@@ -217,6 +217,7 @@ chrome.runtime.onStartup.addListener(() => {
     // result.userSettings에 저장된 데이터 사용
     shortcuts = result.shortcuts;
   });
+  console.log("onStartup - shortcuts :  ", shortcuts);
 });
 
 chrome.runtime.onInstalled.addListener(() => {
@@ -239,6 +240,9 @@ chrome.runtime.onMessage.addListener(
     // EXECUTE FROM EXTENSION
     if (request.type === "EXECUTE_SHORTCUT") {
       console.log("request : ", request);
+      if (request.shortcut) {
+        executeShortcut(request.shortcut);
+      }
     }
 
     // EXECUTE FROM CONTENT
