@@ -2,13 +2,19 @@
     "manifest_version": 3,
     "name": "Ninja Tab",
     "version": "1.0",
+    "key":"MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEA4pRc1SvzP33GN/ce8hUwVsYsMOOXFU1Y3Ueq9epzMM0KqKiGdSuT5ftf1SiXkfbmX3YcgzHk0scDsJxvwR9BNtrf1XzZcrdjI3r/dyNvNqM3NgR3niKR1cmNEWslIeSHTs31hinnrye2oYQ7570CTh8v1cJ41ALecZsN8Yu90gQz6wheMeoRXX5Gmm/B35iioTFNElpqD232lYI2kAw67KgUb6sRpWEiCyxp8p+r4FjIrWkBEaO+8ifIeK6nWs6vybdp0//EWXZoEaVanJnkrbOTguv9DQrg20DpnaxYxhqJbC7epZMvAGbFQNYGS3vYq6XSzwy/EbyqR3hUHfgTOwIDAQAB",
     "description": "Manage custom shortcuts for web navigation",
-    "permissions": ["storage", "tabs"],
+    "permissions": ["storage", "tabs","cookies","identity"],
+    "oauth2": {
+      "client_id": "441258256220-vc5ugiltq4r88v6mafliuu0e8jcmoffv.apps.googleusercontent.com",
+      "scopes": ["openid", "email", "profile"]
+    },
     "action": {
       "default_popup": "index.html"
     },
     "background": {
-      "service_worker": "background.js"
+      "service_worker": "background.js",
+      "type" : "module"
     },
     "content_scripts" : [
     {
@@ -21,5 +27,8 @@
       "32": "images/icon-32.png",
       "48": "images/icon-48.png",
       "128": "images/icon-128.png"
-    }
+    },
+    "host_permissions": [
+      "http://localhost:3000/"
+  ]
   }
