@@ -98,6 +98,13 @@ function Home() {
           >
             Add Shortcut
           </button>
+          <button
+            onClick={() => {
+              chrome.runtime.sendMessage({ type: "LOGIN" });
+            }}
+          >
+            Login
+          </button>
         </div>
       )}
     </div>

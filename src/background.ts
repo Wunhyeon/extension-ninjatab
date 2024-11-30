@@ -1,3 +1,5 @@
+import { createClient } from "@supabase/supabase-js";
+
 interface Shortcut {
   key: string;
   closeCurrentTab: boolean;
@@ -212,6 +214,17 @@ const executeShortcut = async (func: Shortcut) => {
 
 let shortcuts: Shortcuts;
 
+chrome.cookies.get(
+  { url: "http://localhost:3000", name: "ninjatab-auth-token" },
+  (cookie) => {
+    console.log("cookie : ", cookie);
+  }
+);
+
+chrome.cookies.getAll({ url: "http://localhost:3000" }, (cookies) => {
+  console.log("all Cookies : ", cookies);
+});
+
 chrome.runtime.onStartup.addListener(() => {
   chrome.storage.sync.get(["shortcuts"], (result) => {
     // result.userSettings에 저장된 데이터 사용
@@ -222,9 +235,45 @@ chrome.runtime.onStartup.addListener(() => {
 
 chrome.runtime.onInstalled.addListener(() => {
   console.log("onINstalled");
+  console.log("chrome.runtime.id : ", chrome.runtime.id);
 
   // chrome.storage.sync.set({ shortcuts: {} as Shortcuts });
+  chrome.storage.sync.get(["shortcuts"], (result) => {
+    // result.userSettings에 저장된 데이터 사용
+    shortcuts = result.shortcuts;
+  });
 });
+
+// OAuth2
+const SUPABASE_KEY =
+  "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5mZGVsZnl4ZWJ1aWZ3YnRvdGhtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzI4NjkxMDgsImV4cCI6MjA0ODQ0NTEwOH0.lKs1J_5dNcaZka8uVufm_QaOGe8X28Oe3mKd6phP_HE";
+const SUPABASE_URL = "https://nfdelfyxebuifwbtothm.supabase.co";
+
+const supabase = createClient(SUPABASE_URL, SUPABASE_KEY, {
+  global: { fetch: fetch.bind(globalThis) },
+  auth: {
+    // storage: localforage,
+    persistSession: true,
+  },
+});
+const manifest = chrome.runtime.getManifest();
+
+const url = new URL("https://accounts.google.com/o/oauth2/auth");
+
+url.searchParams.set(
+  "client_id",
+  manifest.oauth2 ? manifest.oauth2.client_id : ""
+);
+url.searchParams.set("response_type", "id_token");
+url.searchParams.set("access_type", "offline");
+url.searchParams.set(
+  "redirect_uri",
+  `https://${chrome.runtime.id}.chromiumapp.org`
+);
+url.searchParams.set(
+  "scope",
+  manifest.oauth2?.scopes ? manifest.oauth2.scopes.join(" ") : ""
+);
 
 chrome.runtime.onMessage.addListener(
   async (request: RequestType, _sender, sendResponse) => {
@@ -274,35 +323,41 @@ chrome.runtime.onMessage.addListener(
         executeShortcut(request.shortcut);
       }
     }
+
+    // LOGIN (오ㅣ부 앱사이트에서)
+    if (request.type === "LOGIN") {
+      console.log("LOGIN!!!");
+      // console.log("url. : ", url.searchParams.get("redirect_uri"));
+
+      chrome.identity.launchWebAuthFlow(
+        {
+          url: url.href,
+          interactive: true,
+        },
+        async (redirectedTo) => {
+          console.log("redirectedTo : ", redirectedTo);
+
+          if (chrome.runtime.lastError) {
+            // auth was not successful
+            console.log(
+              "auth not! - chrome.runtime.lastError : ",
+              chrome.runtime.lastError
+            );
+          } else {
+            // auth was successful, extract the ID token from the redirectedTo URL
+            const url = new URL(redirectedTo!);
+            // const params = new URLSearchParams(url.hash);
+            const params = new URLSearchParams(url.hash.replace("#", ""));
+            const { data, error } = await supabase.auth.signInWithIdToken({
+              provider: "google",
+              token: params.get("id_token")!,
+            });
+
+            console.log("data : ", data);
+            console.log("error: ", error);
+          }
+        }
+      );
+    }
   }
 );
-
-// function executeShortcut(shortcutKey: string) {
-// chrome.storage.sync.get("shortcuts", (data: { shortcuts: Shortcuts }) => {
-//   const shortcut = data.shortcuts[shortcutKey];
-//   if (shortcut) {
-//     switch (shortcut.action) {
-//       case "OPEN_URL":
-//         if (shortcut.url) chrome.tabs.create({ url: shortcut.url });
-//         break;
-//       case "OPEN_MULTIPLE_URLS":
-//         if (shortcut.urls)
-//           shortcut.urls.forEach((url) => chrome.tabs.create({ url }));
-//         break;
-//       case "CLOSE_AND_OPEN":
-//         chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
-//           if (tabs[0].id) chrome.tabs.remove(tabs[0].id);
-//           if (shortcut.urls) {
-//             shortcut.urls.forEach((url) => chrome.tabs.create({ url }));
-//           } else if (shortcut.url) {
-//             chrome.tabs.create({ url: shortcut.url });
-//           }
-//         });
-//         break;
-//     }
-//   }
-// });
-//   if (shortcutKey) {
-//     return true;
-//   }
-// }
