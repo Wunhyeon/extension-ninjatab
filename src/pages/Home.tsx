@@ -81,7 +81,7 @@ function Home() {
   };
 
   return (
-    <div className="p-4 w-72">
+    <div className="p-4 w-96">
       <h1 className="text-2xl font-bold mb-4">Shortcut Manager</h1>
 
       {isAddingShortcut ? (
