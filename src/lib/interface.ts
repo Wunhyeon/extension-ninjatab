@@ -4,6 +4,9 @@ export interface Shortcut {
   muteCurrentTab: boolean;
   moveCurrentTab: string;
   openTabs: string[];
+  closeOtherTabs: boolean;
+  closeOtherExceptUrl: string[];
+  muteAllTabs: boolean;
 }
 
 export interface Shortcuts {

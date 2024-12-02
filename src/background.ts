@@ -6,6 +6,10 @@ interface Shortcut {
   moveCurrentTab: string;
   muteCurrentTab: boolean;
   openTabs: string[];
+  closeOtherTabs: boolean;
+  closeOtherExceptUrl: string[];
+  muteAllTabs: boolean;
+  wasWritingNote?: string;
 }
 
 interface Shortcuts {
@@ -151,40 +155,21 @@ const getShortcutKeyCombo = (e: KeyType) => {
 
 // ***********************************************
 
+// SUPABASE CLIENT*******
+const SUPABASE_KEY =
+  "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5mZGVsZnl4ZWJ1aWZ3YnRvdGhtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzI4NjkxMDgsImV4cCI6MjA0ODQ0NTEwOH0.lKs1J_5dNcaZka8uVufm_QaOGe8X28Oe3mKd6phP_HE";
+const SUPABASE_URL = "https://nfdelfyxebuifwbtothm.supabase.co";
+
+const supabase = createClient(SUPABASE_URL, SUPABASE_KEY, {
+  global: { fetch: fetch.bind(globalThis) },
+  auth: {
+    // storage: localforage,
+    persistSession: true,
+  },
+});
+
 // FUNCTION ****************************************
 const executeShortcut = async (func: Shortcut) => {
-  // chrome.storage.sync.get("shortcuts", (data: { shortcuts: Shortcuts }) => {
-  //   const shortcut = data.shortcuts[shortcutKey];
-  //   if (shortcut) {
-  //     switch (shortcut.action) {
-  //       case "OPEN_URL":
-  //         if (shortcut.url) chrome.tabs.create({ url: shortcut.url });
-  //         break;
-  //       case "OPEN_MULTIPLE_URLS":
-  //         if (shortcut.urls)
-  //           shortcut.urls.forEach((url) => chrome.tabs.create({ url }));
-  //         break;
-  //       case "CLOSE_AND_OPEN":
-  //         chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
-  //           if (tabs[0].id) chrome.tabs.remove(tabs[0].id);
-  //           if (shortcut.urls) {
-  //             shortcut.urls.forEach((url) => chrome.tabs.create({ url }));
-  //           } else if (shortcut.url) {
-  //             chrome.tabs.create({ url: shortcut.url });
-  //           }
-  //         });
-  //         break;
-  //     }
-  //   }
-  // });
-  //   if (shortcutKey) {
-  //     return true;
-  //   }
-
-  // if(func.closeCurrentTab){
-  // chrome.tabs.
-  // }
-
   const [currentTab] = await chrome.tabs.query({
     active: true,
     currentWindow: true,
@@ -194,6 +179,30 @@ const executeShortcut = async (func: Shortcut) => {
   const currentTabId = currentTab.id;
 
   if (func.closeCurrentTab && currentTabId) {
+    console.time("q");
+
+    console.time("getUser");
+    const loginUser = await supabase.auth.getUser();
+    console.timeEnd("getUser");
+    console.log("loginUser : ", loginUser);
+    console.time("sql");
+    const user = await supabase
+      .from("users")
+      .select("id, email, subscriptions(*)")
+      .eq("id", loginUser.data.user?.id);
+    console.timeEnd("sql");
+    console.log("user : ", user);
+    console.timeEnd("q");
+
+    console.time("session");
+    const sessionUser = await (
+      await supabase.auth.getSession()
+    ).data.session?.user.id;
+
+    console.log("sesionUser : ", sessionUser);
+
+    console.timeEnd("session");
+
     chrome.tabs.remove(currentTabId);
   }
 
@@ -214,16 +223,12 @@ const executeShortcut = async (func: Shortcut) => {
 
 let shortcuts: Shortcuts;
 
-chrome.cookies.get(
-  { url: "http://localhost:3000", name: "ninjatab-auth-token" },
-  (cookie) => {
-    console.log("cookie : ", cookie);
-  }
-);
-
-chrome.cookies.getAll({ url: "http://localhost:3000" }, (cookies) => {
-  console.log("all Cookies : ", cookies);
-});
+// chrome.cookies.get(
+//   { url: "http://localhost:3000", name: "ninjatab-auth-token" },
+//   (cookie) => {
+//     console.log("cookie : ", cookie);
+//   }
+// );
 
 chrome.runtime.onStartup.addListener(() => {
   chrome.storage.sync.get(["shortcuts"], (result) => {
@@ -241,39 +246,11 @@ chrome.runtime.onInstalled.addListener(() => {
   chrome.storage.sync.get(["shortcuts"], (result) => {
     // result.userSettings에 저장된 데이터 사용
     shortcuts = result.shortcuts;
+    console.log("shortcuts : ", shortcuts);
   });
 });
 
 // OAuth2
-const SUPABASE_KEY =
-  "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5mZGVsZnl4ZWJ1aWZ3YnRvdGhtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzI4NjkxMDgsImV4cCI6MjA0ODQ0NTEwOH0.lKs1J_5dNcaZka8uVufm_QaOGe8X28Oe3mKd6phP_HE";
-const SUPABASE_URL = "https://nfdelfyxebuifwbtothm.supabase.co";
-
-const supabase = createClient(SUPABASE_URL, SUPABASE_KEY, {
-  global: { fetch: fetch.bind(globalThis) },
-  auth: {
-    // storage: localforage,
-    persistSession: true,
-  },
-});
-const manifest = chrome.runtime.getManifest();
-
-const url = new URL("https://accounts.google.com/o/oauth2/auth");
-
-url.searchParams.set(
-  "client_id",
-  manifest.oauth2 ? manifest.oauth2.client_id : ""
-);
-url.searchParams.set("response_type", "id_token");
-url.searchParams.set("access_type", "offline");
-url.searchParams.set(
-  "redirect_uri",
-  `https://${chrome.runtime.id}.chromiumapp.org`
-);
-url.searchParams.set(
-  "scope",
-  manifest.oauth2?.scopes ? manifest.oauth2.scopes.join(" ") : ""
-);
 
 chrome.runtime.onMessage.addListener(
   async (request: RequestType, _sender, sendResponse) => {
@@ -328,6 +305,24 @@ chrome.runtime.onMessage.addListener(
     if (request.type === "LOGIN") {
       console.log("LOGIN!!!");
       // console.log("url. : ", url.searchParams.get("redirect_uri"));
+      const manifest = chrome.runtime.getManifest();
+
+      const url = new URL("https://accounts.google.com/o/oauth2/auth");
+
+      url.searchParams.set(
+        "client_id",
+        manifest.oauth2 ? manifest.oauth2.client_id : ""
+      );
+      url.searchParams.set("response_type", "id_token");
+      url.searchParams.set("access_type", "offline");
+      url.searchParams.set(
+        "redirect_uri",
+        `https://${chrome.runtime.id}.chromiumapp.org`
+      );
+      url.searchParams.set(
+        "scope",
+        manifest.oauth2?.scopes ? manifest.oauth2.scopes.join(" ") : ""
+      );
 
       chrome.identity.launchWebAuthFlow(
         {

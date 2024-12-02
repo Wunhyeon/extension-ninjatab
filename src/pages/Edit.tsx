@@ -36,6 +36,10 @@ export const Edit = () => {
   const [isMuteCurrentTab, setIsMuteCurrentTab] = useState<string>("true");
   const [moveCurrentTabUrl, setMoveCurrentTabUrl] = useState<string>("");
   const [openTabUrls, setOpenTabUrls] = useState<string[]>([]);
+  const [isExpand, setIsExpand] = useState<boolean>(false);
+  const [isCloseOtherTabs, setIsCloseOtherTabs] = useState<string>("false");
+  const [isMuteAllTabs, setIsMuteAllTabs] = useState<string>("false");
+  const [closeExceptUrls, setCloseExceptUrls] = useState<string[]>([]);
   //validate
   const [isShortcutFilled, setIsShortcutFilled] = useState<boolean>(true);
   const [isOpentabUrlFilled, setIsOpentabUrlFilled] = useState<boolean>(true);
@@ -140,6 +144,18 @@ export const Edit = () => {
       if (shortcutInfo.openTabs && shortcutInfo.openTabs.length > 0) {
         setOpenTabUrls(shortcutInfo.openTabs);
       }
+      if (shortcutInfo.closeOtherTabs) {
+        setIsCloseOtherTabs("true");
+      }
+      if (
+        shortcutInfo.closeOtherExceptUrl &&
+        shortcutInfo.closeOtherExceptUrl.length > 0
+      ) {
+        setCloseExceptUrls(shortcutInfo.closeOtherExceptUrl);
+      }
+      if (shortcutInfo.muteAllTabs) {
+        setIsMuteAllTabs("true");
+      }
     });
   }, []);
 
@@ -156,7 +172,7 @@ export const Edit = () => {
   }
 
   return (
-    <div className="p-4 w-72">
+    <div className="p-4 w-96">
       <form onSubmit={handleSubmit} className="space-y-4">
         <div>
           <label className="block font-medium text-base">Shortcut Key:</label>
@@ -193,7 +209,7 @@ export const Edit = () => {
         {/* Close Current Tab ----------- */}
         <div>
           <label className="block font-medium text-base">
-            Close Current tab
+            ➤ Close Current tab
           </label>
           {/* onValueChange={setIsCloseThisTab} 이건 onValueChange={(newValue) => {setIsCloseThisTab(newValue)}} 와 같은 의미이다. */}
           <RadioGroup
@@ -221,7 +237,7 @@ export const Edit = () => {
         {isCloseCurrentTab === "true" ? (
           <></>
         ) : (
-          <div>
+          <div className="px-4">
             <label className="block font-medium text-base">
               Move Current Tab To
             </label>
@@ -235,13 +251,14 @@ export const Edit = () => {
                 setMoveCurrentTabUrl(e.target.value);
               }}
               className="border p-2 w-full"
+              placeholder={URL_MUST_START_WITH}
             />
           </div>
         )}
         {/* Mute Current Tab ---------------- */}
         <div>
           <label className="block font-medium text-base">
-            Mute Current tab
+            ➤ Mute Current tab
           </label>
           {/* onValueChange={setIsCloseThisTab} 이건 onValueChange={(newValue) => {setIsCloseThisTab(newValue)}} 와 같은 의미이다. */}
           <RadioGroup
@@ -267,7 +284,7 @@ export const Edit = () => {
         {/* Mute Current Tab ---------------- */}
         {/* Open New Tabs ------------------ */}
         <div>
-          <label className="block font-medium text-base">Open New Tabs</label>
+          <label className="block font-medium text-base">➤ Open New Tabs</label>
           <p>{URL_MUST_START_WITH}</p>
           {/* validate */}
           {!isOpentabUrlFilled && (
@@ -280,6 +297,92 @@ export const Edit = () => {
             setStringArr={setOpenTabUrls}
           />
         </div>
+        {/* Open New Tabs -------------- */}
+        {!isExpand ? (
+          <p className="cursor-pointer" onClick={() => setIsExpand(true)}>
+            See More Feature...
+          </p>
+        ) : (
+          <>
+            {/* Close Other Tabs ----------- */}
+            <div>
+              <label className="block font-medium text-base">
+                ➤ Close other tabs (Other than the current tab)
+              </label>
+              {/* onValueChange={setIsCloseThisTab} 이건 onValueChange={(newValue) => {setIsCloseThisTab(newValue)}} 와 같은 의미이다. */}
+              <RadioGroup
+                defaultValue="true"
+                className="flex"
+                value={isCloseOtherTabs}
+                onValueChange={setIsCloseOtherTabs}
+              >
+                <div className="flex items-center space-x-2">
+                  <RadioGroupItem value="true" id="r1" />
+                  <Label htmlFor="r1" className="font-normal">
+                    Yes
+                  </Label>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <RadioGroupItem value="false" id="r2" />
+                  <Label htmlFor="r2" className="font-normal">
+                    No
+                  </Label>
+                </div>
+              </RadioGroup>
+            </div>
+            {isCloseOtherTabs === "true" ? (
+              <div className="px-4">
+                <label className="block font-medium text-base">
+                  URL to exclude
+                </label>
+                <p>{URL_MUST_START_WITH}</p>
+                {/* validate */}
+                {!isOpentabUrlFilled && (
+                  <p className="text-red-500">
+                    Please do not leave the URL input field empty.
+                  </p>
+                )}
+                <DynamicInputList
+                  stringArr={closeExceptUrls}
+                  setStringArr={setCloseExceptUrls}
+                />
+              </div>
+            ) : (
+              <></>
+            )}
+            {/* Close Other Tabs ----------------- */}
+            {/* Mute Current Tab ---------------- */}
+            <div>
+              <label className="block font-medium text-base">
+                ➤ Mute All tab
+              </label>
+              {/* onValueChange={setIsCloseThisTab} 이건 onValueChange={(newValue) => {setIsCloseThisTab(newValue)}} 와 같은 의미이다. */}
+              <RadioGroup
+                defaultValue="true"
+                className="flex"
+                value={isMuteAllTabs}
+                onValueChange={setIsMuteAllTabs}
+              >
+                <div className="flex items-center space-x-2">
+                  <RadioGroupItem value="true" id="r1" />
+                  <Label htmlFor="r1" className="font-normal">
+                    Yes
+                  </Label>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <RadioGroupItem value="false" id="r2" />
+                  <Label htmlFor="r2" className="font-normal">
+                    No
+                  </Label>
+                </div>
+              </RadioGroup>
+            </div>
+            {/* Mute Current Tab ---------------- */}
+            <p className="cursor-pointer" onClick={() => setIsExpand(false)}>
+              See Less Feature
+            </p>
+          </>
+        )}
         <div className="flex space-x-2">
           <button
             type="submit"
