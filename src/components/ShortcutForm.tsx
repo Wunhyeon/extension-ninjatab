@@ -75,8 +75,8 @@ function ShortcutForm({ onSave, onCancel }: ShortcutFormProps) {
       muteCurrentTab: isMuteThisTab === "true",
       moveCurrentTab: isCloseThisTab === "true" ? "" : moveCurrentTabUrl,
       openTabs: openTabUrls,
-      closeOtherTabs: isCloseOtherTabs === "true", // 임시
-      closeOtherExceptUrl: closeExceptUrls,
+      closeOtherTabs: isCloseOtherTabs === "true",
+      closeOtherExceptUrl: isCloseOtherTabs === "true" ? closeExceptUrls : [],
       muteAllTabs: isMuteAllTabs === "true",
     });
   };

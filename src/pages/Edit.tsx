@@ -78,11 +78,19 @@ export const Edit = () => {
     const updatedShortcuts = {
       ...shortcuts,
       [shortcutKey]: {
+        // key: shortcutKey,
+        // closeCurrentTab: isCloseCurrentTab === "true",
+        // muteCurrentTab: isMuteCurrentTab === "true",
+        // moveCurrentTab: isCloseCurrentTab === "true" ? "" : moveCurrentTabUrl,
+        // openTabs: openTabUrls,
         key: shortcutKey,
         closeCurrentTab: isCloseCurrentTab === "true",
         muteCurrentTab: isMuteCurrentTab === "true",
         moveCurrentTab: isCloseCurrentTab === "true" ? "" : moveCurrentTabUrl,
         openTabs: openTabUrls,
+        closeOtherTabs: isCloseOtherTabs === "true",
+        closeOtherExceptUrl: isCloseOtherTabs === "true" ? closeExceptUrls : [],
+        muteAllTabs: isMuteAllTabs === "true",
       },
     };
 
@@ -174,7 +182,7 @@ export const Edit = () => {
   }
 
   return (
-    <div className="p-4 w-96">
+    <div className="p-4">
       <form onSubmit={handleSubmit} className="space-y-4">
         <div>
           <label className="block font-medium text-base">Shortcut Key:</label>
