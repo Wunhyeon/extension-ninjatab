@@ -9,3 +9,5 @@ export const IS_DELETE_SHORTCUT_CONFIRM =
   "Are you sure you want to delete this shortcut?";
 export const URL_MUST_START_WITH =
   "The URL must start with http:// or https://";
+export const DOMAIN_URL_MUST_START_WITH =
+  "The Domain URL must start with http:// or https://";
