@@ -83,3 +83,23 @@ export const validateOpenNewTabsEmpty = (opentabUrls: string[]) => {
   }
   return true;
 };
+
+export const getWasWritingNote = () => {
+  const activeElement = document.activeElement;
+  let wasWritingNote = "";
+  if (
+    activeElement instanceof HTMLInputElement ||
+    activeElement instanceof HTMLTextAreaElement
+  ) {
+    wasWritingNote = activeElement.value;
+    console.log("inputValue : ", wasWritingNote);
+  } else if (
+    activeElement instanceof HTMLElement &&
+    activeElement.isContentEditable // contenteditable 요소인지 확인
+  ) {
+    // contenteditable 요소의 텍스트 가져오기
+    wasWritingNote = activeElement.innerText; // 또는 textContent
+    console.log("Contenteditable value:", wasWritingNote);
+  }
+  return wasWritingNote;
+};

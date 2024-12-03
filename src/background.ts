@@ -29,6 +29,7 @@ type RequestType = {
   key: KeyType;
   shortcuts?: Shortcuts;
   shortcut?: Shortcut;
+  wasWritingNote?: string;
 };
 
 const codeToKey: Record<string, string> = {
@@ -169,7 +170,7 @@ const supabase = createClient(SUPABASE_URL, SUPABASE_KEY, {
 });
 
 // FUNCTION ****************************************
-const executeShortcut = async (func: Shortcut) => {
+const executeShortcut = async (func: Shortcut, wasWritingNote?: string) => {
   const [currentTab] = await chrome.tabs.query({
     active: true,
     currentWindow: true,
@@ -183,12 +184,15 @@ const executeShortcut = async (func: Shortcut) => {
   console.log("currentTab : ", currentTab);
   console.log("other tabs : ", otherTabs);
   const currentTabId = currentTab.id;
-  let closedCurrentTabUrl = "";
+  let currentClosedTabUrl = "";
   // let closedOtherTabs: string[] = [];
 
   if (currentTabId && (func.closeCurrentTab || func.moveCurrentTab)) {
-    closedCurrentTabUrl = currentTab.url || "";
-    console.log("closedCurrentTabUrl : ", closedCurrentTabUrl);
+    currentClosedTabUrl = currentTab.url || "";
+    console.log("closedCurrentTabUrl : ", currentClosedTabUrl);
+    chrome.storage.sync.set({
+      currentClosed: { currentClosedTabUrl, wasWritingNote },
+    });
   }
 
   if (func.closeCurrentTab && currentTabId) {
@@ -238,10 +242,27 @@ const executeShortcut = async (func: Shortcut) => {
       if (!tab.url) {
         return;
       }
-      return !func.closeOtherExceptUrl.includes(tab.url);
+      const domain = new URL(tab.url).origin;
+      return !func.closeOtherExceptUrl.includes(domain);
     });
 
     console.log("filteredCloseTabs : ", filtertedCloseTabs);
+    const closedOtherTabsUrls: string[] = [];
+    for (let i = 0; i < filtertedCloseTabs.length; i++) {
+      const tabId = filtertedCloseTabs[i].id;
+      const tabUrl = filtertedCloseTabs[i].url;
+      if (tabId) {
+        chrome.tabs.remove(tabId);
+      }
+      if (tabId && tabUrl) {
+        closedOtherTabsUrls.push(tabUrl);
+      }
+    }
+
+    chrome.storage.sync.set({ closedOtherTabsUrls });
+    chrome.storage.sync.get("closedOtherTabsUrls", (item) => {
+      console.log("other tabs : ", item);
+    });
   }
 };
 
@@ -311,7 +332,7 @@ chrome.runtime.onMessage.addListener(
           shortcuts[shortcutKey]
         );
 
-        executeShortcut(shortcuts[shortcutKey]);
+        executeShortcut(shortcuts[shortcutKey], request.wasWritingNote);
       }
     }
 

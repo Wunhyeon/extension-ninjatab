@@ -55,6 +55,7 @@ function ShortcutList({
   };
 
   const executeShortcutByClick = (shortcut: Shortcut) => {
+    // click으로 실행한거면 어차피 activate되어있지 않기 때문에, wasWritingNote를 저장하지 않는다.
     chrome.runtime.sendMessage({
       type: EXECUTE_SHORTCUT_BY_CLICK,
       shortcut: shortcut,

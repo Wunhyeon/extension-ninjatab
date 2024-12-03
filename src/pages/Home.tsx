@@ -37,7 +37,9 @@ function Home() {
       if (shortcuts && shortcuts[shortcutKey]) {
         event.preventDefault();
         console.log("shortcut 발동!");
-
+        // const wasWritingNote = getWasWritingNote();
+        // alert(`wasWritingNote : ${wasWritingNote}`);
+        // popup이 켜진 상태에서 shortcut을 실행했다는건 포커싱되어있지 않다는 뜻이고, wasWritingNote가 없다.
         chrome.runtime.sendMessage({
           type: "EXECUTE_SHORTCUT",
           shortcut: shortcuts[shortcutKey],
@@ -81,7 +83,7 @@ function Home() {
   };
 
   return (
-    <div className="p-4 w-96">
+    <div className="p-4">
       <h1 className="text-2xl font-bold mb-4">Shortcut Manager</h1>
 
       {isAddingShortcut ? (

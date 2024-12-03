@@ -36,6 +36,7 @@ document.addEventListener("keydown", (event: KeyboardEvent) => {
     wasWritingNote = activeElement.innerText; // 또는 textContent
     console.log("Contenteditable value:", wasWritingNote);
   }
+  // const wasWritingNote = getWasWritingNote();
   chrome.runtime.sendMessage({
     type: "KEY_DOWN",
     key: {
@@ -44,8 +45,8 @@ document.addEventListener("keydown", (event: KeyboardEvent) => {
       metaKey: event.metaKey,
       altKey: event.altKey,
       shiftKey: event.shiftKey,
-      wasWritingNote,
     },
+    wasWritingNote,
     // activeTabId,
   });
 });
