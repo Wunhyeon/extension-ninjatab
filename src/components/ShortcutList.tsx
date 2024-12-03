@@ -14,6 +14,8 @@ import {
   IS_DELETE_SHORTCUT_CONFIRM,
   SAVE_SHORTCUT,
 } from "@/lib/constant";
+import { ClearAllIcon } from "@/lib/svgToTs/ClearAllIcon";
+import { MuteAllIcon } from "@/lib/svgToTs/MuteAllIcon";
 
 function ShortcutList({
   shortcuts,
@@ -23,6 +25,8 @@ function ShortcutList({
   setShortcuts: (value: React.SetStateAction<Shortcuts>) => void;
 }) {
   const navigate = useNavigate();
+
+  console.log("shortcuts : ", shortcuts);
 
   const deleteShortcut = (key: string) => {
     const isDelete = confirm(IS_DELETE_SHORTCUT_CONFIRM);
@@ -104,6 +108,26 @@ function ShortcutList({
                 icon={<FolderPlusIcon />}
                 tooltipText={`${shortcut.openTabs.join(", ")}`}
               />
+            ) : (
+              <></>
+            )}
+            {/* Close other tabs */}
+            {shortcut.closeOtherTabs ? (
+              <IconTooltip
+                icon={<ClearAllIcon strokeWidth={0.3} strokeColor="black" />}
+                tooltipText={`Close Other tabs. ${
+                  shortcut.closeOtherExceptUrl &&
+                  shortcut.closeOtherExceptUrl.length > 0
+                    ? "Except : " + shortcut.closeOtherExceptUrl.join(", ")
+                    : ""
+                }`}
+              />
+            ) : (
+              <></>
+            )}
+            {/* Mute All */}
+            {shortcut.muteAllTabs ? (
+              <IconTooltip icon={<MuteAllIcon />} tooltipText="Mute All" />
             ) : (
               <></>
             )}

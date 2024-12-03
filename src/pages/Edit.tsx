@@ -13,10 +13,12 @@ import {
   validateShortcutEmpty,
 } from "@/lib/utils";
 import {
+  DOMAIN_URL_MUST_START_WITH,
   EXIST_SHORTCUT_CONFIRM,
   SAVE_SHORTCUT,
   URL_MUST_START_WITH,
 } from "@/lib/constant";
+import { TextTooltip } from "@/components/ui/TextTooltip";
 
 export const Edit = () => {
   const { key } = useParams();
@@ -295,6 +297,7 @@ export const Edit = () => {
           <DynamicInputList
             stringArr={openTabUrls}
             setStringArr={setOpenTabUrls}
+            isInputDomain={false}
           />
         </div>
         {/* Open New Tabs -------------- */}
@@ -333,18 +336,26 @@ export const Edit = () => {
             {isCloseOtherTabs === "true" ? (
               <div className="px-4">
                 <label className="block font-medium text-base">
-                  URL to exclude
+                  <TextTooltip
+                    className="underline"
+                    triggerText="Domain"
+                    tooltipText={`Domain is a origin name. ex) In https://google.com/path?search=1
+                  Domain is https://google.com
+                  `}
+                  />{" "}
+                  to exclude
                 </label>
-                <p>{URL_MUST_START_WITH}</p>
+                <p>{DOMAIN_URL_MUST_START_WITH}</p>
                 {/* validate */}
                 {!isOpentabUrlFilled && (
                   <p className="text-red-500">
-                    Please do not leave the URL input field empty.
+                    Please do not leave the Domain URL input field empty.
                   </p>
                 )}
                 <DynamicInputList
                   stringArr={closeExceptUrls}
                   setStringArr={setCloseExceptUrls}
+                  isInputDomain={true}
                 />
               </div>
             ) : (

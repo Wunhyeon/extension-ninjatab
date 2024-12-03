@@ -175,33 +175,46 @@ const executeShortcut = async (func: Shortcut) => {
     currentWindow: true,
   });
 
+  const otherTabs = await chrome.tabs.query({
+    active: false,
+    currentWindow: true,
+  });
+
   console.log("currentTab : ", currentTab);
+  console.log("other tabs : ", otherTabs);
   const currentTabId = currentTab.id;
+  let closedCurrentTabUrl = "";
+  // let closedOtherTabs: string[] = [];
+
+  if (currentTabId && (func.closeCurrentTab || func.moveCurrentTab)) {
+    closedCurrentTabUrl = currentTab.url || "";
+    console.log("closedCurrentTabUrl : ", closedCurrentTabUrl);
+  }
 
   if (func.closeCurrentTab && currentTabId) {
-    console.time("q");
+    // console.time("q");
 
-    console.time("getUser");
-    const loginUser = await supabase.auth.getUser();
-    console.timeEnd("getUser");
-    console.log("loginUser : ", loginUser);
-    console.time("sql");
-    const user = await supabase
-      .from("users")
-      .select("id, email, subscriptions(*)")
-      .eq("id", loginUser.data.user?.id);
-    console.timeEnd("sql");
-    console.log("user : ", user);
-    console.timeEnd("q");
+    // console.time("getUser");
+    // const loginUser = await supabase.auth.getUser();
+    // console.timeEnd("getUser");
+    // console.log("loginUser : ", loginUser);
+    // console.time("sql");
+    // const user = await supabase
+    //   .from("users")
+    //   .select("id, email, subscriptions(*)")
+    //   .eq("id", loginUser.data.user?.id);
+    // console.timeEnd("sql");
+    // console.log("user : ", user);
+    // console.timeEnd("q");
 
-    console.time("session");
-    const sessionUser = await (
-      await supabase.auth.getSession()
-    ).data.session?.user.id;
+    // console.time("session");
+    // const sessionUser = await (
+    //   await supabase.auth.getSession()
+    // ).data.session?.user.id;
 
-    console.log("sesionUser : ", sessionUser);
+    // console.log("sesionUser : ", sessionUser);
 
-    console.timeEnd("session");
+    // console.timeEnd("session");
 
     chrome.tabs.remove(currentTabId);
   }
@@ -218,6 +231,17 @@ const executeShortcut = async (func: Shortcut) => {
     for (let i = 0; i < func.openTabs.length; i++) {
       chrome.tabs.create({ url: func.openTabs[i] });
     }
+  }
+
+  if (func.closeOtherTabs && otherTabs.length > 0) {
+    const filtertedCloseTabs = otherTabs.filter((tab) => {
+      if (!tab.url) {
+        return;
+      }
+      return !func.closeOtherExceptUrl.includes(tab.url);
+    });
+
+    console.log("filteredCloseTabs : ", filtertedCloseTabs);
   }
 };
 
