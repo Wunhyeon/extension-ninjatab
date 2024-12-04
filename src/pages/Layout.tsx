@@ -9,10 +9,22 @@ export const Layout: React.FC = () => {
   const isActivePath = (path: string) => {
     return location.pathname === path ? "bg-zinc-100" : "";
   };
+  const login = () => {
+    chrome.runtime.sendMessage({ type: "LOGIN" }, (response) => {
+      console.log("login response : ", response);
+    });
+  };
 
   return (
     <div className="w-80">
       Layout!@
+      <button
+        onClick={() => {
+          login();
+        }}
+      >
+        Login
+      </button>
       <div>
         <Outlet />
       </div>

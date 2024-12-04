@@ -1,4 +1,5 @@
-import { createClient } from "@supabase/supabase-js";
+// import { createClient } from "@supabase/supabase-js";
+import { supabaseClient } from "./lib/client";
 
 interface Shortcut {
   key: string;
@@ -157,17 +158,18 @@ const getShortcutKeyCombo = (e: KeyType) => {
 // ***********************************************
 
 // SUPABASE CLIENT*******
-const SUPABASE_KEY =
-  "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5mZGVsZnl4ZWJ1aWZ3YnRvdGhtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzI4NjkxMDgsImV4cCI6MjA0ODQ0NTEwOH0.lKs1J_5dNcaZka8uVufm_QaOGe8X28Oe3mKd6phP_HE";
-const SUPABASE_URL = "https://nfdelfyxebuifwbtothm.supabase.co";
+// const SUPABASE_KEY =
+// "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5mZGVsZnl4ZWJ1aWZ3YnRvdGhtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzI4NjkxMDgsImV4cCI6MjA0ODQ0NTEwOH0.lKs1J_5dNcaZka8uVufm_QaOGe8X28Oe3mKd6phP_HE";
+// const SUPABASE_URL = "https://nfdelfyxebuifwbtothm.supabase.co";
 
-const supabase = createClient(SUPABASE_URL, SUPABASE_KEY, {
-  global: { fetch: fetch.bind(globalThis) },
-  auth: {
-    // storage: localforage,
-    persistSession: true,
-  },
-});
+// const supabase = createClient(SUPABASE_URL, SUPABASE_KEY, {
+//   global: { fetch: fetch.bind(globalThis) },
+//   auth: {
+//     // storage: localforage,
+//     persistSession: true,
+//   },
+// });
+const supabase = supabaseClient();
 
 // FUNCTION ****************************************
 const executeShortcut = async (func: Shortcut, wasWritingNote?: string) => {
@@ -298,14 +300,18 @@ chrome.runtime.onInstalled.addListener(() => {
 // OAuth2
 
 chrome.runtime.onMessage.addListener(
-  async (request: RequestType, _sender, sendResponse) => {
+  (request: RequestType, _sender, sendResponse) => {
     // SAVE
     if (request.type === "SAVE_SHORTCUT") {
-      await chrome.storage.sync.set({
-        shortcuts: request.shortcuts ? request.shortcuts : {},
-      });
+      chrome.storage.sync.set(
+        {
+          shortcuts: request.shortcuts ? request.shortcuts : {},
+        },
+        () => {
+          sendResponse({ success: true });
+        }
+      );
       shortcuts = request.shortcuts ? request.shortcuts : {}; // 저장하고, 전역변수로 저장된 shortcuts 업데이트
-      sendResponse({ success: true });
     }
 
     // EXECUTE FROM EXTENSION
@@ -383,6 +389,7 @@ chrome.runtime.onMessage.addListener(
               "auth not! - chrome.runtime.lastError : ",
               chrome.runtime.lastError
             );
+            sendResponse({ message: "Login False TT" });
           } else {
             // auth was successful, extract the ID token from the redirectedTo URL
             const url = new URL(redirectedTo!);
@@ -395,9 +402,85 @@ chrome.runtime.onMessage.addListener(
 
             console.log("data : ", data);
             console.log("error: ", error);
+
+            const user = await supabase.auth.getUser();
+            console.log("user : ", user);
+            if (error) {
+              sendResponse({ message: "login false" });
+            } else {
+              sendResponse({ "message : ": "login Success GOOD" });
+            }
+            // sendResponse({ "message : ": "login Success GOOD2" });
           }
         }
       );
     }
+    return true;
   }
 );
+
+// chrome.runtime.onMessage.addListener((request, _sender, sendResponse) => {
+//   if (request.type === "LOGIN") {
+//     console.log("[background] message received: " + request);
+
+//     console.log("LOGIN!!!");
+//     // console.log("url. : ", url.searchParams.get("redirect_uri"));
+//     const manifest = chrome.runtime.getManifest();
+
+//     const url = new URL("https://accounts.google.com/o/oauth2/auth");
+
+//     url.searchParams.set(
+//       "client_id",
+//       manifest.oauth2 ? manifest.oauth2.client_id : ""
+//     );
+//     url.searchParams.set("response_type", "id_token");
+//     url.searchParams.set("access_type", "offline");
+//     url.searchParams.set(
+//       "redirect_uri",
+//       `https://${chrome.runtime.id}.chromiumapp.org`
+//     );
+//     url.searchParams.set(
+//       "scope",
+//       manifest.oauth2?.scopes ? manifest.oauth2.scopes.join(" ") : ""
+//     );
+
+//     chrome.identity.launchWebAuthFlow(
+//       {
+//         url: url.href,
+//         interactive: true,
+//       },
+//       async (redirectedTo) => {
+//         console.log("redirectedTo : ", redirectedTo);
+
+//         if (chrome.runtime.lastError) {
+//           // auth was not successful
+//           console.log(
+//             "auth not! - chrome.runtime.lastError : ",
+//             chrome.runtime.lastError
+//           );
+//         } else {
+//           // auth was successful, extract the ID token from the redirectedTo URL
+//           const url = new URL(redirectedTo!);
+//           // const params = new URLSearchParams(url.hash);
+//           const params = new URLSearchParams(url.hash.replace("#", ""));
+//           const { data, error } = await supabase.auth.signInWithIdToken({
+//             provider: "google",
+//             token: params.get("id_token")!,
+//           });
+
+//           console.log("data : ", data);
+//           console.log("error: ", error);
+
+//           const user = await supabase.auth.getUser();
+//           console.log("user : ", user);
+//         }
+//         const returnMessage = `방가워~ 이것은 contentScript의 메시지를 background에서 보내는 응답 메시지야~`;
+//         sendResponse({
+//           message: returnMessage,
+//         });
+//       }
+//     );
+//   }
+
+//   return true; // 비동기로 작업 시 필요
+// });
