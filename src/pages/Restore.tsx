@@ -1,5 +1,6 @@
 import { IconTooltip } from "@/components/ui/IconTooltip";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { LAST_CLOSED } from "@/lib/constant";
 // import { TextTooltip } from "@/components/ui/TextTooltip";
 import { useUser } from "@/lib/store/user";
 import { SpeakerWaveIcon } from "@/lib/svgToTs/SpeakerWaveIcon";
@@ -31,7 +32,7 @@ export const Restore = () => {
       setIsSubscribe(true);
 
       chrome.runtime.sendMessage(
-        { type: "LAST" },
+        { type: LAST_CLOSED },
         (response: { success: boolean; getLastClosed: GetLastClosed }) => {
           console.log("restore - last - response : ", response);
           setCurrentClosedTabUrl(

@@ -2,8 +2,14 @@
 import { supabaseClient } from "./lib/client";
 import {
   DO_NOT_SUBSCRIBE_ERROR,
+  EXECUTE_SHORTCUT_BY_CLICK,
   GET_USER_AND_SUBSCRIPTION_ERROR,
   GET_USER_ID_ERROR,
+  LAST_CLOSED,
+  LOGIN,
+  LOGOUT,
+  SAVE_SHORTCUT,
+  USER_STATE,
 } from "./lib/constant";
 import { GetLastClosed } from "./lib/type";
 // import {
@@ -369,7 +375,7 @@ chrome.runtime.onInstalled.addListener(() => {
 chrome.runtime.onMessage.addListener(
   (request: RequestType, _sender, sendResponse) => {
     // SAVE
-    if (request.type === "SAVE_SHORTCUT") {
+    if (request.type === SAVE_SHORTCUT) {
       chrome.storage.sync.set(
         {
           shortcuts: request.shortcuts ? request.shortcuts : {},
@@ -411,7 +417,7 @@ chrome.runtime.onMessage.addListener(
     }
 
     // EXECUTE BY CLICK
-    if (request.type === "EXECUTE_SHORTCUT_BY_CLICK") {
+    if (request.type === EXECUTE_SHORTCUT_BY_CLICK) {
       // const shortcuts = request
       // console.log("shortcuts : ", shortcuts);
       console.log("request : ", request.shortcut);
@@ -421,7 +427,7 @@ chrome.runtime.onMessage.addListener(
     }
 
     // LOGIN (오ㅣ부 앱사이트에서)
-    if (request.type === "LOGIN") {
+    if (request.type === LOGIN) {
       console.log("LOGIN!!!");
       // console.log("url. : ", url.searchParams.get("redirect_uri"));
       const manifest = chrome.runtime.getManifest();
@@ -488,18 +494,24 @@ chrome.runtime.onMessage.addListener(
     }
 
     // USER STATE 유저 로그인 상태, 구독여부
-    if (request.type === "USER_STATE") {
+    if (request.type === USER_STATE) {
       getUserStateAndResponse(sendResponse);
       // sendResponse({ success: true });
       return true;
     }
 
     // Last Focused
-    if (request.type === "LAST") {
+    if (request.type === LAST_CLOSED) {
       getCurrentClosed(sendResponse);
       // sendResponse({ success: true });
       return true;
     }
+
+    // Logout
+    if (request.type === LOGOUT) {
+      supabase.auth.signOut();
+    }
+
     // return true;
   }
 );
