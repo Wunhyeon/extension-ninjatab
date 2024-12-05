@@ -1,6 +1,8 @@
 // import { Database } from "@/lib/database.types";
 import { BlueBadge } from "@/components/Badge";
+import { LOGIN, LOGOUT, USER_STATE } from "@/lib/constant";
 import { useUser } from "@/lib/store/user";
+import { GoogleLoginBtn } from "@/lib/svgToTs/GoogleLoginBtn";
 import { PlayIcon } from "@/lib/svgToTs/PlayIcon";
 import { UserEmailWithSubsriptionStatus } from "@/lib/type";
 import { RotateCcwIcon } from "lucide-react";
@@ -21,7 +23,7 @@ export const Layout: React.FC = () => {
 
   const login = () => {
     chrome.runtime.sendMessage(
-      { type: "LOGIN" },
+      { type: LOGIN },
       (response: {
         success: boolean;
         user?: UserEmailWithSubsriptionStatus[] | null;
@@ -41,9 +43,15 @@ export const Layout: React.FC = () => {
     );
   };
 
+  const logout = () => {
+    chrome.runtime.sendMessage({ type: LOGOUT });
+    useUser.setState({ user: null });
+    setUserState(null);
+  };
+
   useEffect(() => {
     chrome.runtime.sendMessage(
-      { type: "USER_STATE" },
+      { type: USER_STATE },
       (response: {
         success: boolean;
         user?: UserEmailWithSubsriptionStatus[] | null;
@@ -65,20 +73,32 @@ export const Layout: React.FC = () => {
 
   return (
     <div className="w-80">
-      Layout!@
-      {userState ? (
-        <div>
-          {userState.email} {isSubscribe && <BlueBadge text={"Subscribe"} />}
-        </div>
-      ) : (
-        <button
-          onClick={() => {
-            login();
-          }}
-        >
-          Login
-        </button>
-      )}
+      <div className="p-2">
+        {userState ? (
+          <div className="flex justify-between">
+            <div>
+              {userState.email} {isSubscribe && <BlueBadge text={"Pro"} />}
+            </div>
+            <div>
+              <button
+                onClick={() => {
+                  logout();
+                }}
+              >
+                Logout
+              </button>
+            </div>
+          </div>
+        ) : (
+          <button
+            onClick={() => {
+              login();
+            }}
+          >
+            <GoogleLoginBtn />
+          </button>
+        )}
+      </div>
       <div>
         <Outlet />
       </div>
