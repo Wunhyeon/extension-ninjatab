@@ -1,5 +1,6 @@
 // import { Database } from "@/lib/database.types";
 import { BlueBadge } from "@/components/Badge";
+import { useUser } from "@/lib/store/user";
 import { PlayIcon } from "@/lib/svgToTs/PlayIcon";
 import { UserEmailWithSubsriptionStatus } from "@/lib/type";
 import { RotateCcwIcon } from "lucide-react";
@@ -34,6 +35,7 @@ export const Layout: React.FC = () => {
           ) {
             setIsSubscribe(true);
           }
+          useUser.setState({ user: response.user[0] });
         }
       }
     );
@@ -47,7 +49,7 @@ export const Layout: React.FC = () => {
         user?: UserEmailWithSubsriptionStatus[] | null;
       }) => {
         console.log("@@@ user state response : ", response);
-        if (response.user && response.user.length > 0) {
+        if (response && response.user && response.user.length > 0) {
           setUserState(response.user[0]);
           if (
             response.user[0].subscriptions.length > 0 &&
@@ -55,6 +57,7 @@ export const Layout: React.FC = () => {
           ) {
             setIsSubscribe(true);
           }
+          useUser.setState({ user: response.user[0] });
         }
       }
     );

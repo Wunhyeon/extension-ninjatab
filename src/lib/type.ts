@@ -11,3 +11,11 @@ export type UserEmailWithSubsriptionStatus = {
     created_at: string;
   }[];
 };
+
+export type GetLastClosed = {
+  currentClosed: {
+    currentClosedTabUrl: string;
+    wasWritingNote: string;
+  };
+  closedOtherTabsUrls: string[];
+};

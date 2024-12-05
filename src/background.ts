@@ -1,5 +1,18 @@
 // import { createClient } from "@supabase/supabase-js";
 import { supabaseClient } from "./lib/client";
+import {
+  DO_NOT_SUBSCRIBE_ERROR,
+  GET_USER_AND_SUBSCRIPTION_ERROR,
+  GET_USER_ID_ERROR,
+} from "./lib/constant";
+import { GetLastClosed } from "./lib/type";
+// import {
+//   DO_NOT_SUBSCRIBE_ERROR,
+//   GET_USER_AND_SUBSCRIPTION_ERROR,
+//   GET_USER_ID_ERROR,
+//   GET_USER_STATE_AND_RESPONSE_ERROR,
+// } from "./lib/constant";
+// import { GetCurrentClosed } from "./lib/type";
 
 interface Shortcut {
   key: string;
@@ -232,35 +245,91 @@ const executeShortcut = async (func: Shortcut, wasWritingNote?: string) => {
   }
 };
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-const handleUserState = async (sendResponse: (response: any) => void) => {
+const getUserId = async () => {
+  // let userId = undefined;
   try {
-    const { data, error } = await supabase.auth.getUser(); // await 사용 가능
-    console.log("handleUserState - User: ", data);
+    const { data, error } = await supabase.auth.getUser();
     if (error) {
-      // 로그인이 안되어있을 때(세션등이 없을때)
-      sendResponse({ success: false, error: error });
-    } else {
-      const userRes = await supabase
-        .from("users")
-        .select("email,subscriptions(status, created_at)")
-        .order("created_at", {
-          referencedTable: "subscriptions",
-          ascending: false,
-        });
-      console.log("user with subscription status : ", userRes);
+      throw new Error(error.message);
+    }
+    // userId = data.user.id;
+    return data.user.id;
+  } catch (error) {
+    console.log("err in getUserId : ", error);
+    throw new Error(GET_USER_ID_ERROR);
+  }
+};
 
-      if (userRes.error) {
-        // 세션에 저장되어있는 유저정보를 바탕으로 supabase에 쿼리를 날렸는데 에러가 있을 때
-        sendResponse({ success: false });
-      }
+const getUserAndSubscription = async () => {
+  let userInfo:
+    | {
+        email: string;
+        subscriptions: {
+          status: string;
+          created_at: string;
+        }[];
+      }[]
+    | null = null;
+  try {
+    const userId = await getUserId();
 
-      sendResponse({ success: true, user: userRes.data }); // 결과 반환
+    const { data, error } = await supabase
+      .from("users")
+      .select("email,subscriptions(status, created_at)")
+      .order("created_at", {
+        referencedTable: "subscriptions",
+        ascending: false,
+      })
+      .eq("id", userId);
+    userInfo = data;
+    if (error) {
+      throw new Error(GET_USER_AND_SUBSCRIPTION_ERROR);
     }
   } catch (error) {
-    // supabase try catch 에러
-    console.error("Error fetching user: ", error);
-    sendResponse({ success: false, error: error }); // 에러 반환
+    console.log("err in getUserAndSubscription : ", error);
+    throw new Error(GET_USER_AND_SUBSCRIPTION_ERROR);
+  }
+  return userInfo;
+};
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const getCurrentClosed = async (sendResponse: (response: any) => void) => {
+  // 최근에 닫힌 currentTab, currentTab안의 input, otherTabs
+  try {
+    const userInfo = await getUserAndSubscription();
+    if (!userInfo || userInfo.length < 1) {
+      // 로그인이 안되어있을 때(세션등이 없을때)
+      sendResponse({ success: false, error: GET_USER_ID_ERROR });
+      return;
+    } else if (
+      !userInfo[0].subscriptions ||
+      userInfo[0].subscriptions.length < 1 ||
+      userInfo[0].subscriptions[0].status === "expired"
+    ) {
+      sendResponse({ success: false, error: DO_NOT_SUBSCRIBE_ERROR });
+    }
+    chrome.storage.sync.get(
+      ["currentClosed", "closedOtherTabsUrls"],
+      (response: GetLastClosed) => {
+        console.log("Last Close response : ", response);
+        sendResponse({ success: true, getLastClosed: response });
+      }
+    );
+  } catch (error) {
+    sendResponse({ success: false, error: error });
+  }
+};
+
+const getUserStateAndResponse = async (
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  sendResponse: (response?: any) => void
+) => {
+  try {
+    const userInfo = await getUserAndSubscription();
+
+    sendResponse({ success: true, user: userInfo });
+  } catch (error) {
+    sendResponse({ success: false, error: (error as Error).message });
   }
 };
 
@@ -310,6 +379,7 @@ chrome.runtime.onMessage.addListener(
         }
       );
       shortcuts = request.shortcuts ? request.shortcuts : {}; // 저장하고, 전역변수로 저장된 shortcuts 업데이트
+      return true;
     }
 
     // EXECUTE FROM EXTENSION
@@ -403,7 +473,8 @@ chrome.runtime.onMessage.addListener(
 
             // const user = await supabase.auth.getUser();
             // console.log("user : ", user);
-            handleUserState(sendResponse);
+            getUserStateAndResponse(sendResponse);
+
             // if (error) {
             //   sendResponse({ message: "login false" });
             // } else {
@@ -413,12 +484,22 @@ chrome.runtime.onMessage.addListener(
           }
         }
       );
+      return true;
     }
 
     // USER STATE 유저 로그인 상태, 구독여부
     if (request.type === "USER_STATE") {
-      handleUserState(sendResponse);
+      getUserStateAndResponse(sendResponse);
+      // sendResponse({ success: true });
+      return true;
     }
-    return true;
+
+    // Last Focused
+    if (request.type === "LAST") {
+      getCurrentClosed(sendResponse);
+      // sendResponse({ success: true });
+      return true;
+    }
+    // return true;
   }
 );

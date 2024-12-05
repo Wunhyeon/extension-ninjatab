@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import ShortcutList from "../components/ShortcutList";
 import ShortcutForm from "../components/ShortcutForm";
 import { Shortcut, Shortcuts } from "../lib/interface";
-import { getShortcutKeyCombo, shortcutDuplicateCheck } from "../lib/utils";
+import { /*getShortcutKeyCombo,*/ shortcutDuplicateCheck } from "../lib/utils";
 import { EXIST_SHORTCUT_CONFIRM, SAVE_SHORTCUT } from "@/lib/constant";
 
 function Home() {
@@ -33,6 +33,7 @@ function Home() {
         return;
       }
 
+      /*  popup에서는 keyboard shortcut key를 눌러도 발동되지 않게.
       const shortcutKey = getShortcutKeyCombo(event).join("+");
       if (shortcuts && shortcuts[shortcutKey]) {
         event.preventDefault();
@@ -47,6 +48,7 @@ function Home() {
       } else {
         return;
       }
+        */
     };
 
     document.addEventListener("keydown", handleKeyDown);
@@ -83,7 +85,7 @@ function Home() {
   };
 
   return (
-    <div className="p-4">
+    <div className="p-2">
       <h1 className="text-2xl font-bold mb-4">Shortcut Manager</h1>
 
       {isAddingShortcut ? (

@@ -11,3 +11,11 @@ export const URL_MUST_START_WITH =
   "The URL must start with http:// or https://";
 export const DOMAIN_URL_MUST_START_WITH =
   "The Domain URL must start with http:// or https://";
+
+export const GET_USER_ID_ERROR = "Error in get User Id";
+export const GET_USER_AND_SUBSCRIPTION_ERROR =
+  "Error in get user and subscription";
+export const GET_USER_STATE_AND_RESPONSE_ERROR =
+  "Error in get User State And Response";
+
+export const DO_NOT_SUBSCRIBE_ERROR = "do not subscribe";
