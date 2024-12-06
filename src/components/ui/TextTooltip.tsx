@@ -6,9 +6,9 @@ import {
   TooltipTrigger,
 } from "./tooltip";
 
-interface IconTooltipProps {
-  triggerText: string;
-  tooltipText: string;
+interface TextTooltipProps {
+  triggerText: React.ReactNode;
+  tooltipText: React.ReactNode;
   className?: string;
   delayDuration?: number;
 }
@@ -18,7 +18,7 @@ export const TextTooltip = ({
   tooltipText,
   delayDuration = 100,
   className,
-}: IconTooltipProps) => {
+}: TextTooltipProps) => {
   return (
     <TooltipProvider delayDuration={delayDuration}>
       <Tooltip>

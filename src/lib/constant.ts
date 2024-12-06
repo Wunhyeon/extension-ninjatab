@@ -8,6 +8,8 @@ export const LOGOUT = "LOGOUT";
 export const SAVE_SHORTCUT = "SAVE_SHORTCUT";
 export const LAST_CLOSED = "LAST_CLOSED"; // Last closed current tab url, last edited text, other tabs url
 export const USER_STATE = "USER_STATE"; // user의 로그인 상태, 구독 상태
+export const UNMUTE_CURRENT_TAB = "UNMUTE_CURRENT_TAB";
+export const UNMUTE_ALL_TAB = "UNMUTE_ALL_TAB";
 
 // ment
 export const EXIST_SHORTCUT_CONFIRM =
@@ -18,6 +20,7 @@ export const URL_MUST_START_WITH =
   "The URL must start with http:// or https://";
 export const DOMAIN_URL_MUST_START_WITH =
   "The Domain URL must start with http:// or https://";
+export const PLEASE_SUBSCRIBE = "Please Subscribe";
 
 //error
 export const GET_USER_ID_ERROR = "Error in get User Id";
