@@ -1,4 +1,4 @@
-import { IconTooltip } from "@/components/ui/IconTooltip";
+// import { IconTooltip } from "@/components/ui/IconTooltip";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { LAST_CLOSED } from "@/lib/constant";
 // import { TextTooltip } from "@/components/ui/TextTooltip";
@@ -21,6 +21,8 @@ export const Restore = () => {
   const [wasWritingNote, setWasWritingNote] = useState<string>("");
   const [closedTabUrls, setClosedTabUrls] = useState<string[]>([]);
 
+  // const unmuteCurrentTab = () => {}
+
   useEffect(() => {
     // chrome.runtime.sendMessage({type : })
     if (
@@ -36,12 +38,14 @@ export const Restore = () => {
         (response: { success: boolean; getLastClosed: GetLastClosed }) => {
           console.log("restore - last - response : ", response);
           setCurrentClosedTabUrl(
-            response.getLastClosed.currentClosed.currentClosedTabUrl
+            response.getLastClosed.currentClosed?.currentClosedTabUrl
+              ? response.getLastClosed.currentClosed.currentClosedTabUrl
+              : ""
           );
           setWasWritingNote(
-            response.getLastClosed.currentClosed.wasWritingNote
+            response.getLastClosed.currentClosed?.wasWritingNote || ""
           );
-          setClosedTabUrls(response.getLastClosed.closedOtherTabsUrls);
+          setClosedTabUrls(response.getLastClosed.closedOtherTabsUrls || []);
         }
       );
     }
@@ -49,13 +53,23 @@ export const Restore = () => {
   return (
     <div className="p-2">
       <h1 className="text-2xl font-bold mb-4">Restore</h1>
-      <h2 className="text-xl">Unmute Current Tab(Pro) ⚡️</h2>
-      <IconTooltip
+      <p>Restore by Ninja Tab</p>
+      <h2 className="text-xl">Unmute Tab(Pro) ⚡️</h2>
+      <div className="flex justify-around">
+        {/* <IconTooltip
         icon={<SpeakerWaveIcon />}
         tooltipText={`${
           user && isSubscribe ? "Unmute Current Tab" : "Subscription Please"
         }`}
-      />
+      /> */}
+        <button className="border p-2  flex flex-col items-center rounded-lg hover:bg-zinc-100">
+          <SpeakerWaveIcon /> Current Tab
+        </button>
+        <button className="border p-2  flex flex-col items-center rounded-lg hover:bg-zinc-100">
+          <SpeakerWaveIcon />
+          All Tab
+        </button>
+      </div>
       <div>
         <div>
           <h2 className="text-xl">
@@ -70,7 +84,7 @@ export const Restore = () => {
           <div className="p-2">
             <h3 className="text-lg">Focussed Closed Tab</h3>
             <div>
-              <h4>URL</h4>
+              <h4 className="text-base">URL</h4>
               <div className="flex gap-2">
                 <input
                   type="text"
@@ -91,7 +105,7 @@ export const Restore = () => {
               </div>
             </div>
             <div>
-              <h4>Last Edited Text</h4>
+              <h4 className="text-base">Last Edited Text</h4>
               <textarea
                 readOnly
                 className={`
@@ -106,23 +120,36 @@ export const Restore = () => {
           </div>
           {/* Closed other tabs */}
           <div className="p-2">
-            <h3 className="text-xl">Last Closed Other Tabs</h3>
+            <h3 className="text-lg">Last Closed Other Tabs</h3>
             <ScrollArea className="h-16 p-1" type="auto">
               {user && isSubscribe ? (
-                closedTabUrls.map((value, index) => (
-                  <div key={index} className="flex gap-2 mb-1">
-                    <input
-                      className="border rounded focus:outline-none focus:ring-2 text-ellipsis"
-                      readOnly
-                      type="text"
-                      value={value}
-                    />
-                    <button className="border">Copy</button>
-                    <button className="border">Move</button>
-                  </div>
-                ))
+                closedTabUrls && closedTabUrls.length > 0 ? (
+                  closedTabUrls.map((value, index) => (
+                    <div key={index} className="flex gap-2 mb-1">
+                      <input
+                        className="border rounded focus:outline-none focus:ring-2 text-ellipsis"
+                        readOnly
+                        type="text"
+                        value={value}
+                      />
+                      <button className="border">Copy</button>
+                      <button className="border">Move</button>
+                    </div>
+                  ))
+                ) : (
+                  <input
+                    className="border rounded focus:outline-none focus:ring-2 text-ellipsis"
+                    readOnly
+                    type="text"
+                    value={""}
+                  />
+                )
               ) : (
-                <input type="text" value={"Please Subscribe"} />
+                <input
+                  type="text"
+                  value={"Please Subscribe"}
+                  className="border rounded focus:outline-none focus:ring-2 text-ellipsis resize-none w-full blur-[1px]"
+                />
               )}
             </ScrollArea>
           </div>

@@ -26,3 +26,8 @@ export const GET_USER_AND_SUBSCRIPTION_ERROR =
 export const GET_USER_STATE_AND_RESPONSE_ERROR =
   "Error in get User State And Response";
 export const DO_NOT_SUBSCRIBE_ERROR = "do not subscribe";
+
+// context menu (우클릭)
+// 여러번 쓰이는 id (parentId로)
+export const ADD_OPEN_NEW_TABS = "ADD_OPEN_NEW_TABS";
+export const ADD_EXCLUDE_CLOSE_OTHER_TABS = "ADD_EXCLUDE_CLOSE_OTHER_TABS";
