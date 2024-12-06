@@ -428,7 +428,9 @@ chrome.contextMenus.onClicked.addListener((info, tab) => {
 
   if (parentId && parentId === ADD_EXCLUDE_CLOSE_OTHER_TABS && tab?.url) {
     shortcuts[extractKey].closeOtherTabs = true;
-    shortcuts[extractKey].closeOtherExceptUrl.push(tab.url);
+    // URL 객체를 생성하여 호스트만 반환
+    const { origin } = new URL(tab.url);
+    shortcuts[extractKey].closeOtherExceptUrl.push(origin);
   }
 
   chrome.storage.sync.set({ shortcuts });
