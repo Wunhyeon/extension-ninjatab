@@ -1,6 +1,8 @@
 // import { createClient } from "@supabase/supabase-js";
 import { supabaseClient } from "./lib/client";
 import {
+  ADD_EXCLUDE_CLOSE_OTHER_TABS,
+  ADD_OPEN_NEW_TABS,
   DO_NOT_SUBSCRIBE_ERROR,
   EXECUTE_SHORTCUT_BY_CLICK,
   GET_USER_AND_SUBSCRIPTION_ERROR,
@@ -342,6 +344,7 @@ const getUserStateAndResponse = async (
 // Function END *************
 
 let shortcuts: Shortcuts;
+const contextMenuKeyId: string[] = [];
 
 // chrome.cookies.get(
 //   { url: "http://localhost:3000", name: "ninjatab-auth-token" },
@@ -362,12 +365,75 @@ chrome.runtime.onInstalled.addListener(() => {
   console.log("onINstalled");
   console.log("chrome.runtime.id : ", chrome.runtime.id);
 
+  chrome.contextMenus.create({
+    id: "example",
+    title: "Always Visible",
+    type: "normal",
+    contexts: ["all"], // 항상 표시
+  });
+
   // chrome.storage.sync.set({ shortcuts: {} as Shortcuts });
   chrome.storage.sync.get(["shortcuts"], (result) => {
     // result.userSettings에 저장된 데이터 사용
     shortcuts = result.shortcuts ? result.shortcuts : {};
     console.log("shortcuts : ", shortcuts);
+
+    chrome.contextMenus.create({
+      id: ADD_OPEN_NEW_TABS,
+      title: "Add Open New Tabs Url",
+      type: "normal",
+      contexts: ["all"], // 항상 표시
+    });
+
+    chrome.contextMenus.create({
+      id: ADD_EXCLUDE_CLOSE_OTHER_TABS, // domain
+      title: "Add Close Other Tabs Domain",
+      type: "normal",
+      contexts: ["all"], // 항상 표시
+    });
+
+    for (const [key, _value] of Object.entries(shortcuts)) {
+      chrome.contextMenus.create({
+        id: `${ADD_OPEN_NEW_TABS}:${key}`,
+        parentId: ADD_OPEN_NEW_TABS,
+        title: key,
+        type: "normal",
+        contexts: ["page"],
+      });
+
+      chrome.contextMenus.create({
+        id: `${ADD_EXCLUDE_CLOSE_OTHER_TABS}:${key}`,
+        parentId: ADD_EXCLUDE_CLOSE_OTHER_TABS,
+        title: key,
+        type: "normal",
+        contexts: ["page"],
+      });
+      contextMenuKeyId.push(key);
+    }
   });
+});
+
+// context menu 실행
+chrome.contextMenus.onClicked.addListener((info, tab) => {
+  console.log("info : ", info);
+  console.log("tab : ", tab);
+
+  const menuItemId = info.menuItemId; // ADD_EXCLUDE_CLOSE_OTHER_TABS:shift+1 이런식으로 저장함.
+  const extractKey = menuItemId.toString().split(":")[1];
+  const parentId = info.parentMenuItemId;
+
+  if (parentId && parentId === ADD_OPEN_NEW_TABS && tab?.url) {
+    shortcuts[extractKey].openTabs.push(tab.url);
+  }
+
+  if (parentId && parentId === ADD_EXCLUDE_CLOSE_OTHER_TABS && tab?.url) {
+    shortcuts[extractKey].closeOtherTabs = true;
+    // URL 객체를 생성하여 호스트만 반환
+    const { origin } = new URL(tab.url);
+    shortcuts[extractKey].closeOtherExceptUrl.push(origin);
+  }
+
+  chrome.storage.sync.set({ shortcuts });
 });
 
 // OAuth2
@@ -381,6 +447,27 @@ chrome.runtime.onMessage.addListener(
           shortcuts: request.shortcuts ? request.shortcuts : {},
         },
         () => {
+          for (const [key, _value] of Object.entries(shortcuts)) {
+            if (contextMenuKeyId.indexOf(key) !== -1) {
+              continue;
+            }
+            chrome.contextMenus.create({
+              id: `${ADD_OPEN_NEW_TABS}:${key}`,
+              parentId: ADD_OPEN_NEW_TABS,
+              title: key,
+              type: "normal",
+              contexts: ["page"],
+            });
+
+            chrome.contextMenus.create({
+              id: `${ADD_EXCLUDE_CLOSE_OTHER_TABS}:${key}`,
+              parentId: ADD_EXCLUDE_CLOSE_OTHER_TABS,
+              title: key,
+              type: "normal",
+              contexts: ["page"],
+            });
+          }
+
           sendResponse({ success: true });
         }
       );
