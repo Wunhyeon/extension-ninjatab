@@ -1,7 +1,12 @@
 // import { IconTooltip } from "@/components/ui/IconTooltip";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { LAST_CLOSED } from "@/lib/constant";
-// import { TextTooltip } from "@/components/ui/TextTooltip";
+import {
+  LAST_CLOSED,
+  PLEASE_SUBSCRIBE,
+  UNMUTE_ALL_TAB,
+  UNMUTE_CURRENT_TAB,
+} from "@/lib/constant";
+import { TextTooltip } from "@/components/ui/TextTooltip";
 import { useUser } from "@/lib/store/user";
 import { SpeakerWaveIcon } from "@/lib/svgToTs/SpeakerWaveIcon";
 import { GetLastClosed } from "@/lib/type";
@@ -21,7 +26,36 @@ export const Restore = () => {
   const [wasWritingNote, setWasWritingNote] = useState<string>("");
   const [closedTabUrls, setClosedTabUrls] = useState<string[]>([]);
 
-  // const unmuteCurrentTab = () => {}
+  const unmuteCurrentTab = () => {
+    if (!isSubscribe) {
+      alert(PLEASE_SUBSCRIBE);
+      return;
+    }
+    chrome.runtime.sendMessage(
+      { type: UNMUTE_CURRENT_TAB },
+      (response: { success: boolean; message?: string }) => {
+        if (response.message) {
+          alert(response.message);
+        }
+      }
+    );
+  };
+
+  const unmuteAllTab = () => {
+    if (!isSubscribe) {
+      alert(PLEASE_SUBSCRIBE);
+      return;
+    }
+
+    chrome.runtime.sendMessage(
+      { type: UNMUTE_ALL_TAB },
+      (response: { success: boolean; messsage?: string }) => {
+        if (response.messsage) {
+          alert(response.messsage);
+        }
+      }
+    );
+  };
 
   useEffect(() => {
     // chrome.runtime.sendMessage({type : })
@@ -54,7 +88,25 @@ export const Restore = () => {
     <div className="p-2">
       <h1 className="text-2xl font-bold mb-4">Restore</h1>
       <p>Restore by Ninja Tab</p>
-      <h2 className="text-xl">Unmute Tab(Pro) ⚡️</h2>
+      <h2 className="text-xl">
+        Unmute Tab(Pro){" "}
+        <TextTooltip
+          triggerText={"⚡️"}
+          tooltipText={
+            <>
+              Enable this feature by signing up for a premium account.
+              <br />
+              <a
+                href="https://naver.com"
+                target="_blank"
+                className="text-blue-300 underline"
+              >
+                Subscribe
+              </a>
+            </>
+          }
+        />{" "}
+      </h2>
       <div className="flex justify-around">
         {/* <IconTooltip
         icon={<SpeakerWaveIcon />}
@@ -62,10 +114,20 @@ export const Restore = () => {
           user && isSubscribe ? "Unmute Current Tab" : "Subscription Please"
         }`}
       /> */}
-        <button className="border p-2  flex flex-col items-center rounded-lg hover:bg-zinc-100">
+        <button
+          className="border p-2 w-24 flex flex-col items-center rounded-lg hover:bg-zinc-100"
+          onClick={() => {
+            unmuteCurrentTab();
+          }}
+        >
           <SpeakerWaveIcon /> Current Tab
         </button>
-        <button className="border p-2  flex flex-col items-center rounded-lg hover:bg-zinc-100">
+        <button
+          className="border p-2 w-24  flex flex-col items-center rounded-lg hover:bg-zinc-100"
+          onClick={() => {
+            unmuteAllTab();
+          }}
+        >
           <SpeakerWaveIcon />
           All Tab
         </button>

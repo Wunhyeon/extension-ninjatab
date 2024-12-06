@@ -11,6 +11,8 @@ import {
   LOGIN,
   LOGOUT,
   SAVE_SHORTCUT,
+  UNMUTE_ALL_TAB,
+  UNMUTE_CURRENT_TAB,
   USER_STATE,
 } from "./lib/constant";
 import { GetLastClosed } from "./lib/type";
@@ -341,6 +343,67 @@ const getUserStateAndResponse = async (
   }
 };
 
+const getIsSubscribe = async () => {
+  const userInfo = await getUserAndSubscription();
+  if (
+    !userInfo ||
+    userInfo.length < 1 ||
+    !userInfo[0].subscriptions ||
+    userInfo[0].subscriptions.length < 1 ||
+    userInfo[0].subscriptions[0].status === "expired"
+  ) {
+    return false;
+  }
+  return true;
+};
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const unmuteCurrentTab = async (sendResponse: (response?: any) => void) => {
+  try {
+    const isSubscribe = await getIsSubscribe();
+    if (!isSubscribe) {
+      throw new Error(DO_NOT_SUBSCRIBE_ERROR);
+    }
+    const [currentTab] = await chrome.tabs.query({
+      active: true,
+      currentWindow: true,
+    });
+    const currentTabId = currentTab.id;
+
+    if (currentTabId) {
+      chrome.tabs.update(currentTabId, { muted: false }, () => {
+        sendResponse({ success: true });
+      });
+    }
+  } catch (error) {
+    sendResponse({ success: false, error: (error as Error).message });
+  }
+};
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const unmuteAllTab = async (sendResponse: (response?: any) => void) => {
+  try {
+    const isSubscribe = await getIsSubscribe();
+    if (!isSubscribe) {
+      throw new Error(DO_NOT_SUBSCRIBE_ERROR);
+    }
+    const tabs = await chrome.tabs.query({
+      currentWindow: true,
+    });
+
+    for (let i = 0; i < tabs.length; i++) {
+      const tabId = tabs[i].id;
+      if (tabId) {
+        chrome.tabs.update(tabId, { muted: false });
+      }
+    }
+
+    sendResponse({ success: true });
+  } catch (error) {
+    sendResponse({ success: false, error: (error as Error).message });
+  }
+};
+
 // Function END *************
 
 let shortcuts: Shortcuts;
@@ -567,13 +630,6 @@ chrome.runtime.onMessage.addListener(
             // const user = await supabase.auth.getUser();
             // console.log("user : ", user);
             getUserStateAndResponse(sendResponse);
-
-            // if (error) {
-            //   sendResponse({ message: "login false" });
-            // } else {
-            //   sendResponse({ "message : ": "login Success GOOD" });
-            // }
-            // sendResponse({ "message : ": "login Success GOOD2" });
           }
         }
       );
@@ -597,6 +653,18 @@ chrome.runtime.onMessage.addListener(
     // Logout
     if (request.type === LOGOUT) {
       supabase.auth.signOut();
+    }
+
+    // Unmute current tab
+    if (request.type === UNMUTE_CURRENT_TAB) {
+      unmuteCurrentTab(sendResponse);
+      return true;
+    }
+
+    // Unmute All tab
+    if (request.type === UNMUTE_ALL_TAB) {
+      unmuteAllTab(sendResponse);
+      return true;
     }
 
     // return true;
