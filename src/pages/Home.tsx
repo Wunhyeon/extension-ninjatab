@@ -10,7 +10,7 @@ function Home() {
   const [isAddingShortcut, setIsAddingShortcut] = useState(false);
 
   useEffect(() => {
-    chrome.storage.sync.get("shortcuts", (data: { shortcuts: Shortcuts }) => {
+    chrome.storage.local.get("shortcuts", (data: { shortcuts: Shortcuts }) => {
       // console.log("init - data : ", data);
 
       setShortcuts(data.shortcuts || {});
@@ -61,7 +61,7 @@ function Home() {
     const updatedShortcuts = { ...shortcuts, [newShortcut.key]: newShortcut };
     console.log("updatedShortcuts : ", updatedShortcuts);
 
-    // chrome.storage.sync.set({ shortcuts: updatedShortcuts }, () => {
+    // chrome.storage.local.set({ shortcuts: updatedShortcuts }, () => {
     //   setShortcuts(updatedShortcuts);
     //   setIsAddingShortcut(false);
     // });
@@ -86,7 +86,7 @@ function Home() {
 
   return (
     <div className="p-2">
-      <h1 className="text-2xl font-bold mb-4">Shortcut Manager</h1>
+      <h1 className="text-2xl font-bold mb-4">📜 Shortcut List</h1>
 
       {isAddingShortcut ? (
         <ShortcutForm
