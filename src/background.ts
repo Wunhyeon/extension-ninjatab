@@ -203,7 +203,7 @@ const executeShortcut = async (func: Shortcut, wasWritingNote?: string) => {
   if (currentTabId && (func.closeCurrentTab || func.moveCurrentTab)) {
     currentClosedTabUrl = currentTab.url || "";
     console.log("closedCurrentTabUrl : ", currentClosedTabUrl);
-    chrome.storage.sync.set({
+    chrome.storage.local.set({
       currentClosed: { currentClosedTabUrl, wasWritingNote },
     });
   }
@@ -248,8 +248,8 @@ const executeShortcut = async (func: Shortcut, wasWritingNote?: string) => {
       }
     }
 
-    chrome.storage.sync.set({ closedOtherTabsUrls });
-    chrome.storage.sync.get("closedOtherTabsUrls", (item) => {
+    chrome.storage.local.set({ closedOtherTabsUrls });
+    chrome.storage.local.get("closedOtherTabsUrls", (item) => {
       console.log("other tabs : ", item);
     });
   }
@@ -318,7 +318,7 @@ const getCurrentClosed = async (sendResponse: (response: any) => void) => {
     ) {
       sendResponse({ success: false, error: DO_NOT_SUBSCRIBE_ERROR });
     }
-    chrome.storage.sync.get(
+    chrome.storage.local.get(
       ["currentClosed", "closedOtherTabsUrls"],
       (response: GetLastClosed) => {
         console.log("Last Close response : ", response);
@@ -417,7 +417,7 @@ const contextMenuKeyId: string[] = [];
 // );
 
 chrome.runtime.onStartup.addListener(() => {
-  chrome.storage.sync.get(["shortcuts"], (result) => {
+  chrome.storage.local.get(["shortcuts"], (result) => {
     // result.userSettings에 저장된 데이터 사용
     shortcuts = result.shortcuts;
   });
@@ -435,8 +435,8 @@ chrome.runtime.onInstalled.addListener(() => {
     contexts: ["all"], // 항상 표시
   });
 
-  // chrome.storage.sync.set({ shortcuts: {} as Shortcuts });
-  chrome.storage.sync.get(["shortcuts"], (result) => {
+  // chrome.storage.local.set({ shortcuts: {} as Shortcuts });
+  chrome.storage.local.get(["shortcuts"], (result) => {
     // result.userSettings에 저장된 데이터 사용
     shortcuts = result.shortcuts ? result.shortcuts : {};
     console.log("shortcuts : ", shortcuts);
@@ -496,7 +496,7 @@ chrome.contextMenus.onClicked.addListener((info, tab) => {
     shortcuts[extractKey].closeOtherExceptUrl.push(origin);
   }
 
-  chrome.storage.sync.set({ shortcuts });
+  chrome.storage.local.set({ shortcuts });
 });
 
 // OAuth2
@@ -505,7 +505,7 @@ chrome.runtime.onMessage.addListener(
   (request: RequestType, _sender, sendResponse) => {
     // SAVE
     if (request.type === SAVE_SHORTCUT) {
-      chrome.storage.sync.set(
+      chrome.storage.local.set(
         {
           shortcuts: request.shortcuts ? request.shortcuts : {},
         },

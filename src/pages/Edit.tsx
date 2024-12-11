@@ -124,7 +124,7 @@ export const Edit = () => {
   };
 
   useEffect(() => {
-    chrome.storage.sync.get("shortcuts", (data: { shortcuts: Shortcuts }) => {
+    chrome.storage.local.get("shortcuts", (data: { shortcuts: Shortcuts }) => {
       // console.log("init - data : ", data);
       setShortcuts(data.shortcuts || {});
       if (!key || key === "") {
