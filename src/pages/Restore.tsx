@@ -3,6 +3,7 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import {
   LAST_CLOSED,
   PLEASE_SUBSCRIBE,
+  SUBSCRIBE_URL,
   UNMUTE_ALL_TAB,
   UNMUTE_CURRENT_TAB,
 } from "@/lib/constant";
@@ -11,6 +12,7 @@ import { useUser } from "@/lib/store/user";
 import { SpeakerWaveIcon } from "@/lib/svgToTs/SpeakerWaveIcon";
 import { GetLastClosed } from "@/lib/type";
 import { useEffect, useState } from "react";
+import { CopyButton } from "@/components/ui/CopyButton";
 
 export const Restore = () => {
   const user = useUser((state) => state.user);
@@ -22,9 +24,10 @@ export const Restore = () => {
     };
     closedOtherTabsUrls: string[];
   */
-  const [currentClosedTabUrl, setCurrentClosedTabUrl] = useState<string>("");
-  const [wasWritingNote, setWasWritingNote] = useState<string>("");
-  const [closedTabUrls, setClosedTabUrls] = useState<string[]>([]);
+  const [currentClosedTabUrl, setCurrentClosedTabUrl] =
+    useState<string>(SUBSCRIBE_URL);
+  const [wasWritingNote, setWasWritingNote] = useState<string>(SUBSCRIBE_URL);
+  const [closedTabUrls, setClosedTabUrls] = useState<string[]>([SUBSCRIBE_URL]);
 
   const unmuteCurrentTab = () => {
     if (!isSubscribe) {
@@ -84,6 +87,7 @@ export const Restore = () => {
       );
     }
   }, [user]);
+
   return (
     <div className="p-2">
       <h1 className="text-2xl font-bold mb-4">Restore</h1>
@@ -97,7 +101,7 @@ export const Restore = () => {
               Enable this feature by signing up for a premium account.
               <br />
               <a
-                href="https://naver.com"
+                href={SUBSCRIBE_URL}
                 target="_blank"
                 className="text-blue-300 underline"
               >
@@ -139,7 +143,23 @@ export const Restore = () => {
               triggerText="Last Closed Tab ⚡️"
               tooltipText="By Ninja Tab Keyboard Shortcut"
             /> */}
-            Last Closed Tab(Pro) ⚡️
+            Last Closed Tab(Pro){" "}
+            <TextTooltip
+              triggerText={"⚡️"}
+              tooltipText={
+                <>
+                  Enable this feature by signing up for a premium account.
+                  <br />
+                  <a
+                    href={SUBSCRIBE_URL}
+                    target="_blank"
+                    className="text-blue-300 underline"
+                  >
+                    Subscribe
+                  </a>
+                </>
+              }
+            />
           </h2>
           <p>Last Closed Tab By Ninja Tab Keyboard Shortcut</p>
           {/* Focussed Closed Tab */}
@@ -161,8 +181,15 @@ export const Restore = () => {
                   }`}
                 />
                 <div className="flex gap-2">
-                  <button className="border rounded">Copy</button>
-                  <button className="border rounded">Move</button>
+                  <CopyButton text={currentClosedTabUrl} />
+
+                  <a
+                    target="_blank"
+                    className="border rounded"
+                    href={currentClosedTabUrl}
+                  >
+                    Open
+                  </a>
                 </div>
               </div>
             </div>
@@ -177,12 +204,29 @@ export const Restore = () => {
                   user && isSubscribe ? wasWritingNote : "Please Subscribe"
                 }`}
               />
-              <button className="border rounded">Copy</button>
+
+              <CopyButton text={wasWritingNote} />
             </div>
           </div>
           {/* Closed other tabs */}
           <div className="p-2">
-            <h3 className="text-lg">Last Closed Other Tabs</h3>
+            <div className="flex justify-around">
+              <h3 className="text-lg inline">Last Closed Other Tabs</h3>
+              <button
+                className="rounded border px-2"
+                onClick={() => {
+                  if (user && isSubscribe) {
+                    for (let i = 0; i < closedTabUrls.length; i++) {
+                      chrome.tabs.create({ url: closedTabUrls[i] });
+                    }
+                  } else {
+                    chrome.tabs.create({ url: SUBSCRIBE_URL });
+                  }
+                }}
+              >
+                Open All
+              </button>
+            </div>
             <ScrollArea className="h-16 p-1" type="auto">
               {user && isSubscribe ? (
                 closedTabUrls && closedTabUrls.length > 0 ? (
@@ -194,24 +238,51 @@ export const Restore = () => {
                         type="text"
                         value={value}
                       />
-                      <button className="border">Copy</button>
-                      <button className="border">Move</button>
+                      <CopyButton text={value} />
+                      <a
+                        href={value}
+                        target="_blank"
+                        className="border rounded"
+                      >
+                        Open
+                      </a>
                     </div>
                   ))
                 ) : (
+                  <div className="flex gap-2 mb-1">
+                    <input
+                      className="border rounded focus:outline-none focus:ring-2 text-ellipsis"
+                      readOnly
+                      type="text"
+                      value={"Please Subscribe"}
+                    />
+                    <CopyButton text={SUBSCRIBE_URL} />
+                    <a
+                      href={SUBSCRIBE_URL}
+                      target="_blank"
+                      className="border rounded"
+                    >
+                      Open
+                    </a>
+                  </div>
+                )
+              ) : (
+                <div className="flex gap-2 mb-1">
                   <input
                     className="border rounded focus:outline-none focus:ring-2 text-ellipsis"
                     readOnly
                     type="text"
-                    value={""}
+                    value={"Please Subscribe"}
                   />
-                )
-              ) : (
-                <input
-                  type="text"
-                  value={"Please Subscribe"}
-                  className="border rounded focus:outline-none focus:ring-2 text-ellipsis resize-none w-full blur-[1px]"
-                />
+                  <CopyButton text={SUBSCRIBE_URL} />
+                  <a
+                    href={SUBSCRIBE_URL}
+                    target="_blank"
+                    className="border rounded"
+                  >
+                    Open
+                  </a>
+                </div>
               )}
             </ScrollArea>
           </div>
