@@ -402,6 +402,9 @@ export const Edit = () => {
             </p>
           </>
         )}
+        <p className="font-bold">
+          📝 You Have to REFRESH Your Tabs AFTER ADDING SHORTCUTS
+        </p>
         <div className="flex space-x-2">
           <button
             type="submit"

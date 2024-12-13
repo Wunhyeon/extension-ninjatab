@@ -1,6 +1,6 @@
 // import { Database } from "@/lib/database.types";
 import { BlueBadge } from "@/components/Badge";
-import { LOGIN, LOGOUT, USER_STATE } from "@/lib/constant";
+import { LOGIN, LOGOUT, SITE_URL, USER_STATE } from "@/lib/constant";
 import { useUser } from "@/lib/store/user";
 import { GoogleLoginBtn } from "@/lib/svgToTs/GoogleLoginBtn";
 import { PlayIcon } from "@/lib/svgToTs/PlayIcon";
@@ -73,7 +73,12 @@ export const Layout: React.FC = () => {
 
   return (
     <div className="w-80">
-      <div className="p-2">
+      <div className="p-2 flex justify-around">
+        <h2 className="inline text-2xl font-bold text-center">
+          <a href={SITE_URL} target="_blank">
+            🥷
+          </a>
+        </h2>
         {userState ? (
           <div className="flex justify-between">
             <div>
@@ -84,6 +89,7 @@ export const Layout: React.FC = () => {
                 onClick={() => {
                   logout();
                 }}
+                className="border rounded bg-zinc-100 mx-3"
               >
                 Logout
               </button>

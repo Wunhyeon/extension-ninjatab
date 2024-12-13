@@ -428,13 +428,6 @@ chrome.runtime.onInstalled.addListener(() => {
   console.log("onINstalled");
   console.log("chrome.runtime.id : ", chrome.runtime.id);
 
-  chrome.contextMenus.create({
-    id: "example",
-    title: "Always Visible",
-    type: "normal",
-    contexts: ["all"], // 항상 표시
-  });
-
   // chrome.storage.local.set({ shortcuts: {} as Shortcuts });
   chrome.storage.local.get(["shortcuts"], (result) => {
     // result.userSettings에 저장된 데이터 사용

@@ -22,6 +22,9 @@ export const DOMAIN_URL_MUST_START_WITH =
   "The Domain URL must start with http:// or https://";
 export const PLEASE_SUBSCRIBE = "Please Subscribe";
 
+export const SUBSCRIBE_URL = "https://ninja-tab.site/premium";
+export const SITE_URL = "https://ninja-tab.site";
+
 //error
 export const GET_USER_ID_ERROR = "Error in get User Id";
 export const GET_USER_AND_SUBSCRIPTION_ERROR =
