@@ -443,7 +443,7 @@ chrome.runtime.onInstalled.addListener(() => {
 
     chrome.contextMenus.create({
       id: ADD_EXCLUDE_CLOSE_OTHER_TABS, // domain
-      title: "Add Close Other Tabs Domain",
+      title: "Add Close Other Tabs Exclude Domain",
       type: "normal",
       contexts: ["all"], // 항상 표시
     });
@@ -467,6 +467,14 @@ chrome.runtime.onInstalled.addListener(() => {
       contextMenuKeyId.push(key);
     }
   });
+});
+
+chrome.runtime.onConnect.addListener(() => {
+  chrome.storage.local.get(["shortcuts"], (result) => {
+    // result.userSettings에 저장된 데이터 사용
+    shortcuts = result.shortcuts;
+  });
+  console.log("onConnect - shortcuts :  ", shortcuts);
 });
 
 // context menu 실행
@@ -546,7 +554,27 @@ chrome.runtime.onMessage.addListener(
 
       const shortcutKey = getShortcutKeyCombo(request.key).join("+");
       console.log("shortcutKey : ", shortcutKey);
-      console.log("shortcuts[shortcutKey] : ", shortcuts[shortcutKey]);
+      // console.log("shortcuts[shortcutKey] : ", shortcuts[shortcutKey]);
+
+      if (!shortcuts) {
+        console.log(
+          "shortcut이 undefined로 나와서 다시 load. shortcuts가 가끔 undefined로 나올때의 대비책"
+        );
+
+        chrome.storage.local.get(["shortcuts"], (result) => {
+          // result.userSettings에 저장된 데이터 사용
+          shortcuts = result.shortcuts;
+          if (shortcuts && shortcuts[shortcutKey]) {
+            // event.preventDefault();
+            console.log(
+              "shortcut 발동! : shortcuts[shorcutKey] : ",
+              shortcuts[shortcutKey]
+            );
+
+            executeShortcut(shortcuts[shortcutKey], request.wasWritingNote);
+          }
+        });
+      }
 
       if (shortcuts && shortcuts[shortcutKey]) {
         // event.preventDefault();
