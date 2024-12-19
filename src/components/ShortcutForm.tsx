@@ -99,7 +99,7 @@ function ShortcutForm({ onSave, onCancel }: ShortcutFormProps) {
           value={
             currentKeys.length > 0
               ? currentKeys.join("+")
-              : "Listening for keypress..."
+              : "Click here to register a shortcut"
           }
           onClick={() => {
             handleShortcutInputOpen();

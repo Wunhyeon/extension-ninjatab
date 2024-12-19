@@ -254,7 +254,7 @@ export const Restore = () => {
                       className="border rounded focus:outline-none focus:ring-2 text-ellipsis"
                       readOnly
                       type="text"
-                      value={"Please Subscribe"}
+                      value={""}
                     />
                     <CopyButton text={SUBSCRIBE_URL} />
                     <a
